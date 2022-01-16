@@ -1,3 +1,4 @@
 = tok
 
 Go package to parse strings.
+Inpired by the cScanner implementation from link:https://clingo.aiq.dk/[clingo].
