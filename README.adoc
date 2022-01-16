@@ -1,0 +1,3 @@
+= tok
+
+Go package to parse strings.
