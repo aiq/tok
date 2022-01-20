@@ -54,6 +54,12 @@ func (s *Scanner) RevTo(str string) bool {
 
 // ------------------------------------------------------------------------ fold
 func (s *Scanner) RevIfFold(str string) bool {
+	i := len(str)
+	head := s.Head()
+	suffix := head[len(head)-i:]
+	if strings.EqualFold(suffix, str) {
+		return s.move(-i)
+	}
 	return false
 }
 
@@ -71,6 +77,13 @@ func (s *Scanner) RevIfRune(r rune) bool {
 }
 
 func (s *Scanner) RevToRune(r rune) bool {
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if itr.Val == r {
+			return s.move(-itr.pos())
+		}
+	}
+
 	return false
 }
 
@@ -94,15 +107,39 @@ func (s *Scanner) RevWhileRune(r rune) bool {
 
 // --------------------------------------------------------------------- anyrune
 func (s *Scanner) RevIfAnyRune(str string) bool {
+	last, i := utf8.DecodeLastRuneInString(s.Head())
+	if i != -1 && strings.ContainsRune(str, last) {
+		return true
+	}
 	return false
 }
 
 func (s *Scanner) RevToAnyRune(str string) bool {
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if strings.ContainsRune(str, itr.Val) {
+			return s.move(-itr.pos())
+		}
+	}
+
 	return false
 }
 
 func (s *Scanner) RevWhileAnyRune(str string) bool {
-	return false
+	if len(s.Head()) == 0 {
+		return false
+	}
+
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if !strings.ContainsRune(str, itr.Val) {
+			if itr.pos() == len(s.Head()) {
+				return false
+			}
+			return s.move(-itr.pos())
+		}
+	}
+	return s.move(-itr.pos())
 }
 
 // --------------------------------------------------------------------- between
