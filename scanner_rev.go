@@ -16,19 +16,21 @@ func makeRevItr(str string) revItr {
 	return revItr{
 		Str:  str,
 		init: len(str),
+		Val:  utf8.RuneError,
+		vi:   0,
 	}
 }
 
 func (itr *revItr) next() bool {
-	itr.Val, itr.vi = utf8.DecodeLastRuneInString(itr.Str)
 	if itr.Val != utf8.RuneError {
 		itr.Str = itr.Str[0 : len(itr.Str)-itr.vi]
 	}
+	itr.Val, itr.vi = utf8.DecodeLastRuneInString(itr.Str)
 	return itr.Val != utf8.RuneError
 }
 
 func (itr *revItr) pos() int {
-	return itr.init - (len(itr.Str) + itr.vi)
+	return itr.init - len(itr.Str)
 }
 
 // ---------------------------------------------------------------------- string
@@ -64,6 +66,15 @@ func (s *Scanner) RevIfFold(str string) bool {
 }
 
 func (s *Scanner) RevToFold(str string) bool {
+	i := len(str)
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		suffix := itr.Str[len(itr.Str)-i:]
+		if strings.EqualFold(suffix, str) {
+			return s.move(-itr.pos())
+		}
+	}
+
 	return false
 }
 
@@ -109,7 +120,7 @@ func (s *Scanner) RevWhileRune(r rune) bool {
 func (s *Scanner) RevIfAnyRune(str string) bool {
 	last, i := utf8.DecodeLastRuneInString(s.Head())
 	if i != -1 && strings.ContainsRune(str, last) {
-		return true
+		return s.move(-i)
 	}
 	return false
 }
