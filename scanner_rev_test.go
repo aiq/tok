@@ -196,13 +196,34 @@ func TestRevWhileBetween(t *testing.T) {
 
 // ---------------------------------------------------------------------- match
 func TestRevIfMatch(t *testing.T) {
-
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.RevIfMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestRevToMatch(t *testing.T) {
-
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.RevToMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestRevWhileMatch(t *testing.T) {
-
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.RevWhileMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }

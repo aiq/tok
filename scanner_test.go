@@ -41,6 +41,12 @@ func TestIf(t *testing.T) {
 }
 
 func TestIfAny(t *testing.T) {
+	sca := NewScanner("SELECT *")
+	sca.IfAny([]string{"select", "Select", "SELECT"})
+	exp := headTail{"SELECT", " *"}
+	if e := exp.check(1, sca); e != nil {
+		t.Errorf("%v", e)
+	}
 }
 
 func TestTo(t *testing.T) {
@@ -204,7 +210,6 @@ func TestWhileAnyRune(t *testing.T) {
 }
 
 // --------------------------------------------------------------------- between
-
 type betweenCase struct {
 	inp string
 	min rune
@@ -248,14 +253,41 @@ func TestWhileBetween(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------- match
-func TestIfMatch(t *testing.T) {
+type matchCase struct {
+	inp string
+	f   MatchFunc
+	exp headTail
+}
 
+func TestIfMatch(t *testing.T) {
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.IfMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestToMatch(t *testing.T) {
-
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.ToMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestWhileMatch(t *testing.T) {
-
+	cases := []matchCase{}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.WhileMatch(c.f)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
