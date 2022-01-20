@@ -4,15 +4,38 @@ import "testing"
 
 // ---------------------------------------------------------------------- string
 func TestRevIf(t *testing.T) {
-
+	cases := []stringCase{
+		{"* from", "from", headTail{"* ", "from"}},
+	}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.RevIf(c.str)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestRefIfAny(t *testing.T) {
-
+	sca := NewRevScanner("* From")
+	sca.RevIfAny([]string{"from", "From", "FROM"})
+	exp := headTail{"* ", "From"}
+	if e := exp.check(1, sca); e != nil {
+		t.Errorf("%v", e)
+	}
 }
 
 func TestRevTo(t *testing.T) {
-
+	cases := []stringCase{
+		{"select * from events", "from", headTail{"select * from", " events"}},
+	}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.RevTo(c.str)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 // ------------------------------------------------------------------------ fold
@@ -23,8 +46,7 @@ func TestRevIfFold(t *testing.T) {
 		{"* from", "FROM", headTail{"* ", "from"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevIfFold(c.str)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -40,8 +62,7 @@ func TestRevToFold(t *testing.T) {
 		{"select * from events", "SELECT", headTail{"select", " * from events"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevToFold(c.str)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -55,8 +76,7 @@ func TestRevIfRune(t *testing.T) {
 		{"xyz", 'z', headTail{"xy", "z"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevIfRune(c.r)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -71,8 +91,7 @@ func TestRevToRune(t *testing.T) {
 		{"1. end", '1', headTail{"1", ". end"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevToRune(c.r)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -87,8 +106,7 @@ func TestRevWhileRune(t *testing.T) {
 		{"   ", ' ', headTail{"", "   "}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevWhileRune(c.r)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -103,8 +121,7 @@ func TestRevIfAnyRune(t *testing.T) {
 		{"123:", ":,", headTail{"123", ":"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevIfAnyRune(c.str)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -120,8 +137,7 @@ func TestRevToAnyRune(t *testing.T) {
 		{"-123", "+-", headTail{"-", "123"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevToAnyRune(c.str)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -136,8 +152,7 @@ func TestRevWhileAnyRune(t *testing.T) {
 		{"12344512", "1234567890", headTail{"", "12344512"}},
 	}
 	for i, c := range cases {
-		sca := NewScanner(c.inp)
-		sca.ToEnd()
+		sca := NewRevScanner(c.inp)
 		sca.RevWhileAnyRune(c.str)
 		if e := c.exp.check(i, sca); e != nil {
 			t.Errorf("%v", e)
@@ -147,15 +162,36 @@ func TestRevWhileAnyRune(t *testing.T) {
 
 // --------------------------------------------------------------------- between
 func TestRevIfBetween(t *testing.T) {
-
+	cases := []betweenCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.IfBetween(c.min, c.max)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestRevToBetween(t *testing.T) {
-
+	cases := []betweenCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.ToBetween(c.min, c.max)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestRevWhileBetween(t *testing.T) {
-
+	cases := []betweenCase{}
+	for i, c := range cases {
+		sca := NewRevScanner(c.inp)
+		sca.WhileBetween(c.min, c.max)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 // ---------------------------------------------------------------------- match

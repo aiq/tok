@@ -33,6 +33,13 @@ func (itr *revItr) pos() int {
 	return itr.init - len(itr.Str)
 }
 
+// -----------------------------------------------------------------------------
+func NewRevScanner(str string) *Scanner {
+	sca := NewScanner(str)
+	sca.ToEnd()
+	return sca
+}
+
 // ---------------------------------------------------------------------- string
 func (s *Scanner) RevIf(str string) bool {
 	if strings.HasSuffix(s.Head(), str) {
@@ -51,6 +58,13 @@ func (s *Scanner) RevIfAny(strs []string) bool {
 }
 
 func (s *Scanner) RevTo(str string) bool {
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if strings.HasSuffix(itr.Str, str) {
+			return s.move(-itr.pos())
+		}
+	}
+
 	return false
 }
 

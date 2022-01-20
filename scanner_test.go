@@ -28,15 +28,32 @@ type stringCase struct {
 }
 
 func TestIf(t *testing.T) {
-
+	cases := []stringCase{
+		{"select *", "select", headTail{"select", " *"}},
+	}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.If(c.str)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestIfAny(t *testing.T) {
-
 }
 
 func TestTo(t *testing.T) {
-
+	cases := []stringCase{
+		{"select * from events", "from", headTail{"select * ", "from events"}},
+	}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.To(c.str)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 // ------------------------------------------------------------------------ fold
@@ -209,10 +226,25 @@ func TestIfBetween(t *testing.T) {
 }
 
 func TestToBetween(t *testing.T) {
+	cases := []betweenCase{}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.ToBetween(c.min, c.max)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 func TestWhileBetween(t *testing.T) {
-
+	cases := []betweenCase{}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.WhileBetween(c.min, c.max)
+		if e := c.exp.check(i, sca); e != nil {
+			t.Errorf("%v", e)
+		}
+	}
 }
 
 // ---------------------------------------------------------------------- match
