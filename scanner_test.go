@@ -42,7 +42,7 @@ func TestIf(t *testing.T) {
 
 func TestIfAny(t *testing.T) {
 	sca := NewScanner("SELECT *")
-	sca.IfAny([]string{"select", "Select", "SELECT"})
+	sca.IfAny("select", "Select", "SELECT")
 	exp := headTail{"SELECT", " *"}
 	if e := exp.check(1, sca); e != nil {
 		t.Errorf("%v", e)

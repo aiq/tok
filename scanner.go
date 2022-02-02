@@ -31,10 +31,10 @@ func (s *Scanner) move(i int) bool {
 type ScopeFunc func() bool
 
 func (s *Scanner) Scope(f ScopeFunc) bool {
-	marker := s.Mark()
+	m := s.Mark()
 	res := f()
 	if !res {
-		s.ToMarker(marker)
+		s.ToMarker(m)
 	}
 	return res
 }
@@ -42,7 +42,11 @@ func (s *Scanner) Scope(f ScopeFunc) bool {
 func (s *Scanner) Traced(f ScopeFunc) (string, bool) {
 	m := s.Mark()
 	res := f()
-	return s.Since(m), res
+	str := s.Since(m)
+	if !res {
+		s.ToMarker(m)
+	}
+	return str, res
 }
 
 func (s *Scanner) While(f ScopeFunc) bool {
@@ -65,7 +69,7 @@ func (s *Scanner) If(str string) bool {
 	return false
 }
 
-func (s *Scanner) IfAny(strs []string) bool {
+func (s *Scanner) IfAny(strs ...string) bool {
 	for _, str := range strs {
 		if s.If(str) {
 			return true
@@ -253,11 +257,6 @@ func (s *Scanner) Head() string {
 	return s.full[:s.pos]
 }
 
-func (s *Scanner) ScannedRune() rune {
-	r, _ := utf8.DecodeLastRuneInString(s.Head())
-	return r
-}
-
 func (s *Scanner) LineCol() (int, int) {
 	lines := strings.Split(strings.ReplaceAll(s.Head(), "\r\n", "\n"), "\n")
 	if len(lines) == 0 {
@@ -268,15 +267,11 @@ func (s *Scanner) LineCol() (int, int) {
 }
 
 func (s *Scanner) AtEnd() bool {
-	return len(s.Tail()) == 0
+	return len(s.full) == s.pos
 }
 
-func (s *Scanner) ToEnd() bool {
-	return s.ToMarker(Marker(len(s.full)))
-}
-
-func (s *Scanner) ToStart() bool {
-	return s.ToMarker(Marker(0))
+func (s *Scanner) AtStart() bool {
+	return s.pos == 0
 }
 
 // ---------------------------------------------------------------------- Marker
@@ -293,6 +288,14 @@ func (s *Scanner) ToMarker(m Marker) bool {
 	}
 	s.pos = int(m)
 	return true
+}
+
+func (s *Scanner) ToEnd() bool {
+	return s.ToMarker(Marker(len(s.full)))
+}
+
+func (s *Scanner) ToStart() bool {
+	return s.ToMarker(Marker(0))
 }
 
 func (s *Scanner) Mark() Marker {
