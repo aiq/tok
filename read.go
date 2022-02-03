@@ -11,7 +11,7 @@ func (s *Scanner) ReadRune() (rune, error) {
 	if r == utf8.RuneError {
 		return utf8.RuneError, s.boolError(false)
 	}
-	return r, s.boolError(s.move(i))
+	return r, s.boolError(s.Move(i))
 }
 
 func (s *Scanner) RevReadRune() (rune, error) {
@@ -19,7 +19,7 @@ func (s *Scanner) RevReadRune() (rune, error) {
 	if r == utf8.RuneError {
 		return r, s.boolError(false)
 	}
-	return r, s.boolError(s.move(-i))
+	return r, s.boolError(s.Move(-i))
 }
 
 // ReadBool reads bool value from the scanner.
@@ -126,7 +126,7 @@ func (s *Scanner) ReadInt(base int, bitSize int) (int64, error) {
 		return 0, s.errorf("integer")
 	}
 
-	s.move(n + 1)
+	s.Move(n + 1)
 	return i64, nil
 }
 
@@ -206,6 +206,6 @@ func (s *Scanner) ReadUint(base int, bitSize int) (uint64, error) {
 		return 0, s.errorf("unsigned integer")
 	}
 
-	s.move(n + 1)
+	s.Move(n + 1)
 	return u64, nil
 }

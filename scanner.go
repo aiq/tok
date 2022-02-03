@@ -17,15 +17,6 @@ func NewScanner(str string) *Scanner {
 	}
 }
 
-func (s *Scanner) move(i int) bool {
-	i += s.pos
-	if i > len(s.full) {
-		return false
-	}
-	s.pos = i
-	return true
-}
-
 // ----------------------------------------------------------------------- scope
 
 type ScopeFunc func() bool
@@ -64,7 +55,7 @@ func (s *Scanner) Opt(val bool) bool {
 // ---------------------------------------------------------------------- string
 func (s *Scanner) If(str string) bool {
 	if strings.HasPrefix(s.Tail(), str) {
-		return s.move(len(str))
+		return s.Move(len(str))
 	}
 	return false
 }
@@ -81,7 +72,7 @@ func (s *Scanner) IfAny(strs ...string) bool {
 func (s *Scanner) To(str string) bool {
 	i := strings.Index(s.Tail(), str)
 	if i != -1 {
-		return s.move(i)
+		return s.Move(i)
 	}
 	return false
 }
@@ -91,7 +82,7 @@ func (s *Scanner) IfFold(str string) bool {
 	i := len(str)
 	prefix := s.Tail()[:i]
 	if strings.EqualFold(prefix, str) {
-		return s.move(i)
+		return s.Move(i)
 	}
 	return false
 }
@@ -102,7 +93,7 @@ func (s *Scanner) ToFold(str string) bool {
 	for n := 0; len(sub) >= i+n; n++ {
 		prefix := sub[n : n+i]
 		if strings.EqualFold(prefix, str) {
-			return s.move(n)
+			return s.Move(n)
 		}
 	}
 	return false
@@ -114,13 +105,13 @@ func (s *Scanner) IfRune(r rune) bool {
 	if i == -1 || first != r {
 		return false
 	}
-	return s.move(i)
+	return s.Move(i)
 }
 
 func (s *Scanner) ToRune(r rune) bool {
 	for i, v := range s.Tail() {
 		if v == r {
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return false
@@ -133,7 +124,7 @@ func (s *Scanner) WhileRune(r rune) bool {
 
 	for i, v := range s.Tail() {
 		if v != r {
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return s.ToEnd()
@@ -152,7 +143,7 @@ func (s *Scanner) IfAnyRune(str string) bool {
 func (s *Scanner) ToAnyRune(str string) bool {
 	i := strings.IndexAny(s.Tail(), str)
 	if i != -1 {
-		return s.move(i)
+		return s.Move(i)
 	}
 	return false
 }
@@ -167,7 +158,7 @@ func (s *Scanner) WhileAnyRune(str string) bool {
 			if i == 0 {
 				return false
 			}
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return true
@@ -184,13 +175,13 @@ func (s *Scanner) IfBetween(min, max rune) bool {
 	if !inRange(min, val, max) {
 		return false
 	}
-	return s.move(i)
+	return s.Move(i)
 }
 
 func (s *Scanner) ToBetween(min, max rune) bool {
 	for i, v := range s.Tail() {
 		if inRange(min, v, max) {
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return false
@@ -203,7 +194,7 @@ func (s *Scanner) WhileBetween(min, max rune) bool {
 
 	for i, v := range s.Tail() {
 		if !inRange(min, v, max) {
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return s.ToEnd()
@@ -216,7 +207,7 @@ type MatchFunc func(rune) bool
 func (s *Scanner) IfMatch(check MatchFunc) bool {
 	first, i := utf8.DecodeRuneInString(s.Tail())
 	if i != 0 && check(first) {
-		return s.move(i)
+		return s.Move(i)
 	}
 	return false
 }
@@ -224,7 +215,7 @@ func (s *Scanner) IfMatch(check MatchFunc) bool {
 func (s *Scanner) ToMatch(check MatchFunc) bool {
 	for i, v := range s.Tail() {
 		if check(v) {
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 	return false
@@ -240,7 +231,7 @@ func (s *Scanner) WhileMatch(check MatchFunc) bool {
 			if i == 0 {
 				return false
 			}
-			return s.move(i)
+			return s.Move(i)
 		}
 	}
 
@@ -263,7 +254,16 @@ func (s *Scanner) LineCol() (int, int) {
 		return 0, 0
 	}
 	last := lines[len(lines)-1]
-	return len(lines), len(last)
+	return len(lines), len(last) + 1
+}
+
+func (s *Scanner) Move(diff int) bool {
+	npos := s.pos + diff
+	if 0 > npos || npos > len(s.full) {
+		return false
+	}
+	s.pos = npos
+	return true
 }
 
 func (s *Scanner) AtEnd() bool {
