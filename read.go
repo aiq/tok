@@ -9,17 +9,17 @@ import (
 func (s *Scanner) ReadRune() (rune, error) {
 	r, i := utf8.DecodeRuneInString(s.Tail())
 	if r == utf8.RuneError {
-		return utf8.RuneError, s.boolError(false)
+		return utf8.RuneError, s.ErrorFor("rune")
 	}
-	return r, s.boolError(s.Move(i))
+	return r, s.BoolErrorFor(s.Move(i), "rune")
 }
 
 func (s *Scanner) RevReadRune() (rune, error) {
 	r, i := utf8.DecodeLastRuneInString(s.Head())
 	if r == utf8.RuneError {
-		return r, s.boolError(false)
+		return r, s.ErrorFor("rune")
 	}
-	return r, s.boolError(s.Move(-i))
+	return r, s.BoolErrorFor(s.Move(-i), "rune")
 }
 
 // ReadBool reads bool value from the scanner.
@@ -36,7 +36,7 @@ func (s *Scanner) ReadBool(format string) (bool, error) {
 		} else if s.IfAny("false", "False", "FALSE") {
 			return false, nil
 		}
-		return false, s.errorf("bool")
+		return false, s.ErrorFor("bool")
 	}
 
 	trueStr, falseStr := "", ""
@@ -56,7 +56,7 @@ func (s *Scanner) ReadBool(format string) (bool, error) {
 	} else if s.If(falseStr) {
 		return false, nil
 	}
-	return false, s.errorf("bool")
+	return false, s.ErrorFor("bool")
 }
 
 // ReadInt reads a integer value from the scanner.
@@ -123,7 +123,7 @@ func (s *Scanner) ReadInt(base int, bitSize int) (int64, error) {
 	}
 	if n == -1 {
 		s.ToMarker(marker)
-		return 0, s.errorf("integer")
+		return 0, s.ErrorFor("integer")
 	}
 
 	s.Move(n + 1)
@@ -203,7 +203,7 @@ func (s *Scanner) ReadUint(base int, bitSize int) (uint64, error) {
 		n = i
 	}
 	if n == -1 {
-		return 0, s.errorf("unsigned integer")
+		return 0, s.ErrorFor("unsigned integer")
 	}
 
 	s.Move(n + 1)
