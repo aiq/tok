@@ -3,6 +3,7 @@ package tok
 import (
 	"fmt"
 	"testing"
+	"unicode"
 )
 
 type headTail struct {
@@ -219,7 +220,7 @@ type betweenCase struct {
 
 func TestIfBetween(t *testing.T) {
 	cases := []betweenCase{
-		{"", 'a', 'z', headTail{"", ""}},
+		{"abba", 'a', 'z', headTail{"a", "bba"}},
 	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
@@ -231,7 +232,9 @@ func TestIfBetween(t *testing.T) {
 }
 
 func TestToBetween(t *testing.T) {
-	cases := []betweenCase{}
+	cases := []betweenCase{
+		{"pinball2000", '0', '9', headTail{"pinball", "2000"}},
+	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
 		sca.ToBetween(c.min, c.max)
@@ -242,7 +245,9 @@ func TestToBetween(t *testing.T) {
 }
 
 func TestWhileBetween(t *testing.T) {
-	cases := []betweenCase{}
+	cases := []betweenCase{
+		{"pinball2000", 'a', 'z', headTail{"pinball", "2000"}},
+	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
 		sca.WhileBetween(c.min, c.max)
@@ -260,7 +265,9 @@ type matchCase struct {
 }
 
 func TestIfMatch(t *testing.T) {
-	cases := []matchCase{}
+	cases := []matchCase{
+		{"PIN", unicode.IsUpper, headTail{"P", "IN"}},
+	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
 		sca.IfMatch(c.f)
@@ -271,7 +278,9 @@ func TestIfMatch(t *testing.T) {
 }
 
 func TestToMatch(t *testing.T) {
-	cases := []matchCase{}
+	cases := []matchCase{
+		{"PINball", unicode.IsLower, headTail{"PIN", "ball"}},
+	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
 		sca.ToMatch(c.f)
@@ -282,7 +291,9 @@ func TestToMatch(t *testing.T) {
 }
 
 func TestWhileMatch(t *testing.T) {
-	cases := []matchCase{}
+	cases := []matchCase{
+		{"123...", unicode.IsDigit, headTail{"123", "..."}},
+	}
 	for i, c := range cases {
 		sca := NewScanner(c.inp)
 		sca.WhileMatch(c.f)
