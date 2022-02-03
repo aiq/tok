@@ -291,3 +291,31 @@ func TestWhileMatch(t *testing.T) {
 		}
 	}
 }
+
+// ---------------------------------------------------------------------- state
+func TestLineCol(t *testing.T) {
+	cases := []struct {
+		inp  string
+		diff int
+		line int
+		col  int
+	}{
+		{"abcdefgh", 3, 1, 4},
+		{"abcdefgh", 0, 1, 1},
+		{"", 0, 1, 1},
+		{"abc", 3, 1, 4},
+		{"\nabcd\n\nefgh\n\n", 8, 4, 2},
+		{"abc\ndef\nghi", 0, 1, 1},
+	}
+	for i, c := range cases {
+		sca := NewScanner(c.inp)
+		sca.Move(c.diff)
+		line, col := sca.LineCol()
+		if line != c.line {
+			t.Errorf("%d unexpected line: %d != %d", i, line, c.line)
+		}
+		if col != c.col {
+			t.Errorf("%d unexpected col: %d != %d", i, col, c.col)
+		}
+	}
+}
