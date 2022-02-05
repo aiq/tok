@@ -596,3 +596,22 @@ func Wrap(what string, f ReadFunc) Reader {
 func WS() Reader {
 	return AnyRune(" \r\n\t")
 }
+
+//----------------------------------------------------------
+type ZomReader struct {
+	sub Reader
+}
+
+func (r ZomReader) Read(s *Scanner) error {
+	for r.sub.Read(s) == nil {
+	}
+	return nil
+}
+
+func (r ZomReader) What() string {
+	return "*" + r.sub.What()
+}
+
+func Zom(r Reader) Reader {
+	return &ZomReader{r}
+}

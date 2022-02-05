@@ -55,7 +55,7 @@ func JSON() *JSONReader {
 		Sign:       Ref("sign"),
 		WS:         Ref("ws"),
 	}
-	g.WS.Sub = Opt(Many(WS()))
+	g.WS.Sub = Zom(WS())
 	g.Sign.Sub = Opt(AnyRune("+-"))
 	g.OneNine.Sub = Between('1', '9')
 	g.Digit.Sub = Digit()
@@ -67,13 +67,13 @@ func JSON() *JSONReader {
 	g.Hex.Sub = HexDigit()
 	g.Escape.Sub = Any(AnyRune(`"\/bfnrt`), Seq(Rune('u'), Times(4, &g.Hex)))
 	g.Character.Sub = Any(Holey(' ', utf8.MaxRune, `"\`), Seq(Rune('\\'), &g.Escape))
-	g.Characters.Sub = Opt(Many(&g.Character))
+	g.Characters.Sub = Zom(&g.Character)
 	g.String.Sub = Seq(Rune('"'), &g.Characters, Rune('"'))
 	g.Element.Sub = Seq(&g.WS, &g.Value, &g.WS)
-	g.Elements.Sub = Seq(&g.Element, Opt(Many(Seq(Rune(','), &g.Element))))
+	g.Elements.Sub = Seq(&g.Element, Zom(Seq(Rune(','), &g.Element)))
 	g.Array.Sub = Seq(Rune('['), Any(&g.Elements, &g.WS), Rune(']'))
 	g.Member.Sub = Seq(&g.WS, &g.String, &g.WS, Rune(':'), &g.Element)
-	g.Members.Sub = Seq(&g.Member, Opt(Many(Seq(Rune(','), &g.Member))))
+	g.Members.Sub = Seq(&g.Member, Zom(Seq(Rune(','), &g.Member)))
 	g.Object.Sub = Seq(Rune('{'), Any(&g.Members, &g.WS), Rune('}'))
 	g.Value.Sub = Any(&g.Object, &g.Array, &g.String, &g.Number, Lit("true"), Lit("false"), Lit("null"))
 	return g
