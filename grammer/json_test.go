@@ -1,17 +1,13 @@
 package grammer
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/aiq/tok"
 )
 
 func TestJSON(t *testing.T) {
-	fmt.Println(strings.Join(JSON().Grammer().Lines(), "\n"))
-
-	hitCases := []string{
+	posCases := []string{
 		`{}`,
 		`{"key":"value"}`,
 		`{
@@ -36,8 +32,19 @@ func TestJSON(t *testing.T) {
 				}
 			}
 		}`,
+		`{"menu": {
+			"id": "file",
+			"value": "File",
+			"popup": {
+			  "menuitem": [
+				{"value": "New", "onclick": "CreateNewDoc()"},
+				{"value": "Open", "onclick": "OpenDoc()"},
+				{"value": "Close", "onclick": "CloseDoc()"}
+			  ]
+			}
+		  }}`,
 	}
-	for i, c := range hitCases {
+	for i, c := range posCases {
 		sca := tok.NewScanner(c)
 		err := sca.Use(JSON())
 		if err != nil {
