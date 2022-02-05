@@ -5,35 +5,8 @@ import (
 	"unicode/utf8"
 )
 
-type revItr struct {
-	Str  string
-	init int
-	Val  rune
-	vi   int
-}
-
-func makeRevItr(str string) revItr {
-	return revItr{
-		Str:  str,
-		init: len(str),
-		Val:  utf8.RuneError,
-		vi:   0,
-	}
-}
-
-func (itr *revItr) next() bool {
-	if itr.Val != utf8.RuneError {
-		itr.Str = itr.Str[0 : len(itr.Str)-itr.vi]
-	}
-	itr.Val, itr.vi = utf8.DecodeLastRuneInString(itr.Str)
-	return itr.Val != utf8.RuneError
-}
-
-func (itr *revItr) pos() int {
-	return itr.init - len(itr.Str)
-}
-
 // -----------------------------------------------------------------------------
+// Creates a new Scanner to scan the str string and moves the scanner to the end.
 func NewRevScanner(str string) *Scanner {
 	sca := NewScanner(str)
 	sca.ToEnd()
@@ -41,6 +14,8 @@ func NewRevScanner(str string) *Scanner {
 }
 
 // ---------------------------------------------------------------------- string
+// Moves s the length of str backward if Head() has str as the prefix.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIf(str string) bool {
 	if strings.HasSuffix(s.Head(), str) {
 		return s.Move(-len(str))
@@ -48,6 +23,8 @@ func (s *Scanner) RevIf(str string) bool {
 	return false
 }
 
+// Moves s the length fo the value in strs backward if Head() is the suffix.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfAny(strs []string) bool {
 	for _, str := range strs {
 		if s.RevIf(str) {
