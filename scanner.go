@@ -54,11 +54,9 @@ func (s *Scanner) While(f ScopeFunc) bool {
 	return start < end
 }
 
-func (s *Scanner) Opt(val bool) bool {
-	return true
-}
-
 // ---------------------------------------------------------------------- string
+// Moves s the length of str forward if Tail() has str as the prefix.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) If(str string) bool {
 	if strings.HasPrefix(s.Tail(), str) {
 		return s.Move(len(str))
@@ -66,6 +64,8 @@ func (s *Scanner) If(str string) bool {
 	return false
 }
 
+// Moves s the length of the value in strs forward if Tail() that is the prefix.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) IfAny(strs ...string) bool {
 	for _, str := range strs {
 		if s.If(str) {
