@@ -1,9 +1,7 @@
-package grammer
+package tok
 
 import (
 	"fmt"
-
-	"github.com/aiq/tok"
 )
 
 type Rule struct {
@@ -31,10 +29,10 @@ type Grammar interface {
 
 type RefReader struct {
 	Name string
-	Sub  tok.Reader
+	Sub  Reader
 }
 
-func (r *RefReader) Read(s *tok.Scanner) error {
+func (r *RefReader) Read(s *Scanner) error {
 	return r.Sub.Read(s)
 }
 
