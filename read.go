@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 )
 
+// ReadRune reads one rune value from the scanner.
 func (s *Scanner) ReadRune() (rune, error) {
 	r, i := utf8.DecodeRuneInString(s.Tail())
 	if r == utf8.RuneError {
@@ -14,6 +15,7 @@ func (s *Scanner) ReadRune() (rune, error) {
 	return r, s.BoolErrorFor(s.Move(i), "rune")
 }
 
+// RevReadRune reads one rune value from the scanner the reverse way.
 func (s *Scanner) RevReadRune() (rune, error) {
 	r, i := utf8.DecodeLastRuneInString(s.Head())
 	if r == utf8.RuneError {
