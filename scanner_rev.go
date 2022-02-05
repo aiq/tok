@@ -57,6 +57,8 @@ func (s *Scanner) RevIfAny(strs []string) bool {
 	return false
 }
 
+// Moves s to the last appearance of str in Head().
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevTo(str string) bool {
 	itr := makeRevItr(s.Head())
 	for itr.next() {
@@ -69,6 +71,8 @@ func (s *Scanner) RevTo(str string) bool {
 }
 
 // ------------------------------------------------------------------------ fold
+// Moves s the length of str backward if Head() has str as the suffix under Unicode case-folding.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfFold(str string) bool {
 	i := len(str)
 	head := s.Head()
@@ -79,6 +83,8 @@ func (s *Scanner) RevIfFold(str string) bool {
 	return false
 }
 
+// Moves s to the last appearance of str in Head() under Unicode case-folding.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevToFold(str string) bool {
 	i := len(str)
 	itr := makeRevItr(s.Head())
@@ -93,6 +99,8 @@ func (s *Scanner) RevToFold(str string) bool {
 }
 
 // ------------------------------------------------------------------------ rune
+// Moves s one rune value backward if the last rune in Head() equals r.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfRune(r rune) bool {
 	last, i := utf8.DecodeLastRuneInString(s.Head())
 	if i == -1 || last != r {
@@ -101,6 +109,9 @@ func (s *Scanner) RevIfRune(r rune) bool {
 	return s.Move(-i)
 }
 
+// Moves s to the last rune in Head() that matches with r.
+// The function does not move s if not values matches with r.
+// Returns true if a match was found, otherwise false.
 func (s *Scanner) RevToRune(r rune) bool {
 	itr := makeRevItr(s.Head())
 	for itr.next() {
@@ -112,6 +123,8 @@ func (s *Scanner) RevToRune(r rune) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that does not match with r.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileRune(r rune) bool {
 	if len(s.Head()) == 0 {
 		return false
@@ -131,6 +144,8 @@ func (s *Scanner) RevWhileRune(r rune) bool {
 }
 
 // --------------------------------------------------------------------- anyrune
+// Moves s one rune backward if the last rune in Head() is any of the runes in str.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfAnyRune(str string) bool {
 	last, i := utf8.DecodeLastRuneInString(s.Head())
 	if i != -1 && strings.ContainsRune(str, last) {
@@ -139,6 +154,8 @@ func (s *Scanner) RevIfAnyRune(str string) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that matches any of the runes in str.
+// Returns true if a match was found, otherwise false.
 func (s *Scanner) RevToAnyRune(str string) bool {
 	itr := makeRevItr(s.Head())
 	for itr.next() {
@@ -150,6 +167,8 @@ func (s *Scanner) RevToAnyRune(str string) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that does not match any of the runes in str.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileAnyRune(str string) bool {
 	if len(s.Head()) == 0 {
 		return false
@@ -168,27 +187,39 @@ func (s *Scanner) RevWhileAnyRune(str string) bool {
 }
 
 // --------------------------------------------------------------------- between
+// Moves s one rune backward if the last rune in Head() is >= min and <= max.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfBetween(min, max rune) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that is >= min and <= max.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevToBetween(min, max rune) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that is < min or > max.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileBetween(min, max rune) bool {
 	return false
 }
 
 // ---------------------------------------------------------------------- match
+// Moves s one rune backward if the last rune in Head() passes the check.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfMatch(check MatchFunc) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that passes the ckeck.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevToMatch(check MatchFunc) bool {
 	return false
 }
 
+// Moves s to the last rune in Head() that does not pass the ckeck.
+// Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileMatch(check MatchFunc) bool {
 	return false
 }
