@@ -62,7 +62,6 @@ func getDeepest(errs []error) error {
 	var deepest ReadError
 	for _, e := range errs {
 		re, ok := e.(ReadError)
-		fmt.Println(re)
 		if ok && re.DeeperAs(deepest) {
 			deepest = re
 		}
