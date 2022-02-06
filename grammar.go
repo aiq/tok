@@ -49,9 +49,8 @@ func CollectRules(g interface{}) Rules {
 	rules := Rules{}
 	v := reflect.ValueOf(g).Elem()
 	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i).Interface()
-		if reflect.TypeOf(field) == reflect.TypeOf(RuleReader{}) {
-			rule := field.(RuleReader)
+		rule, ok := v.Field(i).Interface().(Rule)
+		if ok {
 			rules = append(rules, rule)
 		}
 	}
