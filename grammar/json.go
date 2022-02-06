@@ -8,53 +8,33 @@ import (
 )
 
 type JSONReader struct {
-	Value      RefReader
-	Object     RefReader
-	Members    RefReader
-	Member     RefReader
-	Array      RefReader
-	Elements   RefReader
-	Element    RefReader
-	String     RefReader
-	Characters RefReader
-	Character  RefReader
-	Escape     RefReader
-	Hex        RefReader
-	Number     RefReader
-	Integer    RefReader
-	Fraction   RefReader
-	Exponent   RefReader
-	OneNine    RefReader
-	Digit      RefReader
-	Digits     RefReader
-	Sign       RefReader
-	WS         RefReader
+	Value      RuleReader `name:"value"`
+	Object     RuleReader `name:"object"`
+	Members    RuleReader `name:"members"`
+	Member     RuleReader `name:"member"`
+	Array      RuleReader `name:"array"`
+	Elements   RuleReader `name:"elements"`
+	Element    RuleReader `name:"element"`
+	String     RuleReader `name:"string"`
+	Characters RuleReader `name:"characters"`
+	Character  RuleReader `name:"character"`
+	Escape     RuleReader `name:"escape"`
+	Hex        RuleReader `name:"hex"`
+	Number     RuleReader `name:"number"`
+	Integer    RuleReader `name:"integer"`
+	Fraction   RuleReader `name:"fraction"`
+	Exponent   RuleReader `name:"exponent"`
+	OneNine    RuleReader `name:"onenine"`
+	Digit      RuleReader `name:"digit"`
+	Digits     RuleReader `name:"digits"`
+	Sign       RuleReader `name:"sign"`
+	WS         RuleReader `name:"ws"`
 }
 
+// based on https://www.crockford.com/mckeeman.html
 func JSON() *JSONReader {
-	g := &JSONReader{
-		Value:      Ref("value"),
-		Object:     Ref("object"),
-		Members:    Ref("members"),
-		Member:     Ref("member"),
-		Array:      Ref("array"),
-		Elements:   Ref("elements"),
-		Element:    Ref("element"),
-		String:     Ref("string"),
-		Characters: Ref("characters"),
-		Character:  Ref("character"),
-		Escape:     Ref("escape"),
-		Hex:        Ref("hex"),
-		Number:     Ref("number"),
-		Integer:    Ref("integer"),
-		Fraction:   Ref("fraction"),
-		Exponent:   Ref("exponent"),
-		OneNine:    Ref("onenine"),
-		Digit:      Ref("digit"),
-		Digits:     Ref("digits"),
-		Sign:       Ref("sign"),
-		WS:         Ref("ws"),
-	}
+	g := &JSONReader{}
+	SetRuleNames(g)
 	g.WS.Sub = Zom(WS())
 	g.Sign.Sub = Opt(AnyRune("+-"))
 	g.OneNine.Sub = Between('1', '9')
@@ -94,27 +74,27 @@ func (r *JSONReader) What() string {
 
 func (r *JSONReader) Grammer() Rules {
 	rules := Rules{
-		r.WS.Rule(),
-		r.Sign.Rule(),
-		r.OneNine.Rule(),
-		r.Digit.Rule(),
-		r.Digits.Rule(),
-		r.Exponent.Rule(),
-		r.Fraction.Rule(),
-		r.Integer.Rule(),
-		r.Number.Rule(),
-		r.Hex.Rule(),
-		r.Escape.Rule(),
-		r.Character.Rule(),
-		r.Characters.Rule(),
-		r.String.Rule(),
-		r.Element.Rule(),
-		r.Elements.Rule(),
-		r.Array.Rule(),
-		r.Member.Rule(),
-		r.Members.Rule(),
-		r.Object.Rule(),
-		r.Value.Rule(),
+		r.WS,
+		r.Sign,
+		r.OneNine,
+		r.Digit,
+		r.Digits,
+		r.Exponent,
+		r.Fraction,
+		r.Integer,
+		r.Number,
+		r.Hex,
+		r.Escape,
+		r.Character,
+		r.Characters,
+		r.String,
+		r.Element,
+		r.Elements,
+		r.Array,
+		r.Member,
+		r.Members,
+		r.Object,
+		r.Value,
 	}
 	return rules
 }

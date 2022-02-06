@@ -7,6 +7,7 @@ import (
 )
 
 func TestJSON(t *testing.T) {
+
 	posCases := []string{
 		`{}`,
 		`{"key":"value"}`,
