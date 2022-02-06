@@ -93,27 +93,28 @@ func (r *JSONReader) What() string {
 }
 
 func (r *JSONReader) Grammer() Rules {
-	rules := []Rule{}
-	rules = append(rules, r.WS.Rule())
-	rules = append(rules, r.Sign.Rule())
-	rules = append(rules, r.OneNine.Rule())
-	rules = append(rules, r.Digit.Rule())
-	rules = append(rules, r.Digits.Rule())
-	rules = append(rules, r.Exponent.Rule())
-	rules = append(rules, r.Fraction.Rule())
-	rules = append(rules, r.Integer.Rule())
-	rules = append(rules, r.Number.Rule())
-	rules = append(rules, r.Hex.Rule())
-	rules = append(rules, r.Escape.Rule())
-	rules = append(rules, r.Character.Rule())
-	rules = append(rules, r.Characters.Rule())
-	rules = append(rules, r.String.Rule())
-	rules = append(rules, r.Element.Rule())
-	rules = append(rules, r.Elements.Rule())
-	rules = append(rules, r.Array.Rule())
-	rules = append(rules, r.Member.Rule())
-	rules = append(rules, r.Members.Rule())
-	rules = append(rules, r.Object.Rule())
-	rules = append(rules, r.Value.Rule())
+	rules := Rules{
+		r.WS.Rule(),
+		r.Sign.Rule(),
+		r.OneNine.Rule(),
+		r.Digit.Rule(),
+		r.Digits.Rule(),
+		r.Exponent.Rule(),
+		r.Fraction.Rule(),
+		r.Integer.Rule(),
+		r.Number.Rule(),
+		r.Hex.Rule(),
+		r.Escape.Rule(),
+		r.Character.Rule(),
+		r.Characters.Rule(),
+		r.String.Rule(),
+		r.Element.Rule(),
+		r.Elements.Rule(),
+		r.Array.Rule(),
+		r.Member.Rule(),
+		r.Members.Rule(),
+		r.Object.Rule(),
+		r.Value.Rule(),
+	}
 	return rules
 }
