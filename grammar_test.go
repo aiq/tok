@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func unexpError(e error) string {
-	return fmt.Sprintf("unexpected error: %v", e)
+func unexpError(i int, e error) string {
+	return fmt.Sprintf("%d unexpected error: %v", i, e)
 }
 
 func unexpRuleName(name string, exp string) string {
@@ -23,7 +23,7 @@ func TestSetRuleNames(t *testing.T) {
 		}{}
 		err := SetRuleNames(&g)
 		if err != nil {
-			t.Error(unexpError(err))
+			t.Error(unexpError(0, err))
 		}
 		if g.Rule1.Name != "first" {
 			t.Error(unexpRuleName(g.Rule1.Name, "first"))
