@@ -72,29 +72,6 @@ func (r *JSONReader) What() string {
 	return "json"
 }
 
-func (r *JSONReader) Grammer() Rules {
-	rules := Rules{
-		r.WS,
-		r.Sign,
-		r.OneNine,
-		r.Digit,
-		r.Digits,
-		r.Exponent,
-		r.Fraction,
-		r.Integer,
-		r.Number,
-		r.Hex,
-		r.Escape,
-		r.Character,
-		r.Characters,
-		r.String,
-		r.Element,
-		r.Elements,
-		r.Array,
-		r.Member,
-		r.Members,
-		r.Object,
-		r.Value,
-	}
-	return rules
+func (r *JSONReader) Grammar() Rules {
+	return CollectRules(r)
 }

@@ -45,6 +45,19 @@ func SetRuleNames(g interface{}) error {
 	return nil
 }
 
+func CollectRules(g interface{}) Rules {
+	rules := Rules{}
+	v := reflect.ValueOf(g).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i).Interface()
+		if reflect.TypeOf(field) == reflect.TypeOf(RuleReader{}) {
+			rule := field.(RuleReader)
+			rules = append(rules, rule)
+		}
+	}
+	return rules
+}
+
 type RuleReader struct {
 	Name string
 	Sub  Reader
