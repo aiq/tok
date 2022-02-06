@@ -62,7 +62,7 @@ func JSON() *JSONReader {
 func (r *JSONReader) Read(s *Scanner) error {
 	err := r.Element.Read(s)
 	if err != nil {
-		l, c := s.LineCol()
+		l, c := s.LineCol(1)
 		return fmt.Errorf("json parse error at %d:%d: %v", l, c, err)
 	}
 	return nil

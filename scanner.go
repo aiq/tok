@@ -287,13 +287,15 @@ func (s *Scanner) Head() string {
 }
 
 // Returns the current line and column in the full string.
-func (s *Scanner) LineCol() (int, int) {
+func (s *Scanner) LineCol(tab int) (int, int) {
 	lines := strings.Split(strings.ReplaceAll(s.Head(), "\r\n", "\n"), "\n")
 	if len(lines) == 0 {
 		return 0, 0
 	}
 	last := lines[len(lines)-1]
-	return len(lines), len(last) + 1
+	tabs := strings.Count(last, "\t")
+	n := (len(last) - tabs) + tabs*tab
+	return len(lines), n + 1
 }
 
 // A positive diff value moves s to the right, a negative value moves s to the left.

@@ -84,18 +84,11 @@ type ruleNameReader struct {
 
 func (r ruleNameReader) Read(s *Scanner) error {
 	err := r.sub.Read(s)
-	if err == nil {
-		return nil
-	}
-	re, ok := err.(ReadError)
-	if !ok {
-		return err
-	}
-	return fmt.Errorf("invalid character at %d:%d", re.Line, re.Col)
+	return s.BoolErrorFor(err == nil, r.What())
 }
 
 func (r ruleNameReader) What() string {
-	return r.sub.What()
+	return "rulename"
 }
 
 func CheckRuleName(name string) error {
