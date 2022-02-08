@@ -322,11 +322,6 @@ func (s *Scanner) AtStart() bool {
 // Marker represents a position in the text that will be scanned.
 type Marker int
 
-// Returns a sub string from the text that will be scanned.
-func (s *Scanner) Since(m Marker) string {
-	return s.Get(MakeToken(m, Marker(s.pos)))
-}
-
 // Moves s to the marked position.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) ToMarker(m Marker) bool {

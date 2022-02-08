@@ -42,16 +42,6 @@ func (s *Scanner) TracedUse(r Reader) (string, error) {
 	return s.Since(m), err
 }
 
-func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
-	a := s.Mark()
-	err := r.Read(s)
-	if err != nil {
-		s.ToMarker(a)
-	}
-	b := s.Mark()
-	return MakeToken(a, b), err
-}
-
 //----------------------------------------------------------
 // AnyReader
 type AnyReader struct {

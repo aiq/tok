@@ -68,6 +68,7 @@ func (s *Scanner) Get(t Token) string {
 	return s.full[t.from:t.to]
 }
 
+//------------------------------------------------------------------------------
 // Marks the sub string that was scanned by f.
 func (s *Scanner) Tokenize(f ScopeFunc) (Token, bool) {
 	a := s.Mark()
@@ -77,4 +78,19 @@ func (s *Scanner) Tokenize(f ScopeFunc) (Token, bool) {
 		s.ToMarker(a)
 	}
 	return MakeToken(a, b), res
+}
+
+func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
+	a := s.Mark()
+	err := r.Read(s)
+	if err != nil {
+		s.ToMarker(a)
+	}
+	b := s.Mark()
+	return MakeToken(a, b), err
+}
+
+// Returns a sub string from the text that will be scanned.
+func (s *Scanner) Since(m Marker) string {
+	return s.Get(MakeToken(m, Marker(s.pos)))
 }
