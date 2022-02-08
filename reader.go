@@ -222,19 +222,8 @@ func Bool(format string) *BoolReader {
 }
 
 //----------------------------------------------------------
-type DigitReader struct {
-}
-
-func (r DigitReader) Read(s *Scanner) error {
-	return s.BoolErrorFor(s.IfBetween('0', '9'), r.What())
-}
-
-func (r DigitReader) What() string {
-	return "[0-9]"
-}
-
 func Digit() Reader {
-	return DigitReader{}
+	return Between('0', '9')
 }
 
 //----------------------------------------------------------
@@ -255,22 +244,8 @@ func Fold(str string) Reader {
 }
 
 //----------------------------------------------------------
-type HexDigitReader struct {
-}
-
-func (r HexDigitReader) Read(s *Scanner) error {
-	res := s.IfBetween('0', '9') ||
-		s.IfBetween('a', 'f') ||
-		s.IfBetween('A', 'F')
-	return s.BoolErrorFor(res, r.What())
-}
-
-func (r HexDigitReader) What() string {
-	return "[0-9a-fA-F]"
-}
-
 func HexDigit() Reader {
-	return HexDigitReader{}
+	return BuildBetweenAny('0', '9', 'a', 'f', 'A', 'F')
 }
 
 //----------------------------------------------------------
