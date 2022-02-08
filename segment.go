@@ -46,9 +46,13 @@ func (s *Scanner) Segmentate(values []Value) ([]Segment, error) {
 			return res, fmt.Errorf("invalid token %s", v.String())
 		}
 		left, rest = rest.Split(v)
-		res = append(res, Segment{left, s.Get(left.Token)})
+		if left.Len() > 0 {
+			res = append(res, Segment{left, s.Get(left.Token)})
+		}
 		res = append(res, Segment{v, s.Get(v.Token)})
 	}
-	res = append(res, Segment{rest, s.Get(rest.Token)})
+	if rest.Len() > 0 {
+		res = append(res, Segment{rest, s.Get(rest.Token)})
+	}
 	return res, nil
 }
