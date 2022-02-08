@@ -207,30 +207,6 @@ func Bool(format string) *BoolReader {
 }
 
 //----------------------------------------------------------
-type CollectReader struct {
-	Bag []Token
-	sub Reader
-}
-
-func (r *CollectReader) Read(s *Scanner) error {
-	t, err := s.TokenizeUse(r.sub)
-	if err == nil {
-		r.Bag = append(r.Bag, t)
-	}
-	return err
-}
-
-func (r *CollectReader) What() string {
-	return "collect(" + r.sub.What() + ")"
-}
-
-func Collect(r Reader) *CollectReader {
-	return &CollectReader{
-		sub: r,
-	}
-}
-
-//----------------------------------------------------------
 type DigitReader struct {
 }
 
