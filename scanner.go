@@ -324,7 +324,7 @@ type Marker int
 
 // Returns a sub string from the text that will be scanned.
 func (s *Scanner) Since(m Marker) string {
-	return s.Get(Token{m, Marker(s.pos)})
+	return s.Get(MakeToken(m, Marker(s.pos)))
 }
 
 // Moves s to the marked position.

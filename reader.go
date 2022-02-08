@@ -49,7 +49,7 @@ func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
 		s.ToMarker(a)
 	}
 	b := s.Mark()
-	return Token{a, b}, err
+	return MakeToken(a, b), err
 }
 
 //----------------------------------------------------------

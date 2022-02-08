@@ -1,36 +1,60 @@
 package tok
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestSegmentate(t *testing.T) {
-	T := func(a int, b int) Token {
-		return Token{Marker(a), Marker(b)}
-	}
+func TestTokenCovers(t *testing.T) {
+	t_02_23 := MakeToken(Marker(2), Marker(23))
+	t_10_30 := MakeToken(Marker(10), Marker(30))
+	t_11_19 := MakeToken(Marker(11), Marker(19))
+
 	cases := []struct {
-		str    string
-		tokens []Token
-		exp    []Segment
+		t   Token
+		oth Token
+		exp bool
 	}{
-		{
-			"abcdefgh", []Token{{0, 1}, {2, 4}, {7, 8}}, []Segment{
-				{false, T(0, 0), ""}, {true, T(0, 1), "a"}, {false, T(1, 2), "b"}, {true, T(2, 4), "cd"},
-				{false, T(4, 7), "efg"}, {true, T(7, 8), "h"}, {false, T(8, 8), ""},
-			},
-		},
+		{t_02_23, t_10_30, false},
+		{t_10_30, t_02_23, false},
+		{t_02_23, t_11_19, true},
+		{t_11_19, t_02_23, false},
+		{t_10_30, t_11_19, true},
+		{t_11_19, t_10_30, false},
 	}
-	for i, c := range cases {
-		sca := NewScanner(c.str)
-		res, err := sca.Segmentate(c.tokens)
-		if err != nil {
-			t.Error(unexpError(i, err))
+
+	for _, c := range cases {
+		res := c.t.Covers(c.oth)
+		if res != c.exp {
+			t.Errorf("unexpected Covers result between %v and %v: %v", c.t, c.oth, res)
 		}
-		if len(res) != len(c.exp) {
-			t.Errorf("%d wrong results: %d != %d", i, len(res), len(c.exp))
-		}
-		for j, seg := range res {
-			if !seg.Equal(c.exp[j]) {
-				t.Errorf("%d unexpected segment at %d: %v != %v", i, j, seg, c.exp[j])
-			}
+	}
+}
+
+func TestTokenClash(t *testing.T) {
+	t_03_08 := MakeToken(Marker(3), Marker(8))
+	t_02_23 := MakeToken(Marker(2), Marker(23))
+	t_10_30 := MakeToken(Marker(10), Marker(30))
+	t_11_19 := MakeToken(Marker(11), Marker(19))
+
+	cases := []struct {
+		t   Token
+		oth Token
+		exp bool
+	}{
+		{t_02_23, t_10_30, true},
+		{t_10_30, t_02_23, true},
+		{t_02_23, t_11_19, false},
+		{t_11_19, t_02_23, false},
+		{t_10_30, t_11_19, false},
+		{t_11_19, t_10_30, false},
+		{t_03_08, t_10_30, false},
+		{t_10_30, t_03_08, false},
+	}
+
+	for _, c := range cases {
+		res := c.t.Clashes(c.oth)
+		if res != c.exp {
+			t.Errorf("unexpected Clashes result between %v and %v: %v", c.t, c.oth, res)
 		}
 	}
 }
