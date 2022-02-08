@@ -105,7 +105,7 @@ type jsonNode struct {
 
 func MakeJSONNode(n *Node) *jsonNode {
 	jn := &jsonNode{
-		Name:  n.Value.Class,
+		Name:  n.Value.Info,
 		Value: n.Len(),
 	}
 	for _, sub := range n.Nodes {
@@ -142,6 +142,6 @@ func BuildGraph(name string, values []Value) *Graph {
 
 func NewGraph(name string) *Graph {
 	g := &Graph{&Node{}}
-	g.Root.Value.Class = name
+	g.Root.Value.Info = name
 	return g
 }

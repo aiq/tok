@@ -5,17 +5,17 @@ import "fmt"
 //------------------------------------------------------------------------------
 
 type Value struct {
-	Class string
+	Info string
 	Token
 }
 
 func (v Value) Split(sep Value) (Value, Value) {
 	l, r := v.Token.Split(sep.Token)
-	return Value{v.Class, l}, Value{v.Class, r}
+	return Value{v.Info, l}, Value{v.Info, r}
 }
 
 func (v Value) String() string {
-	return v.Class + v.Token.String()
+	return v.Info + v.Token.String()
 }
 
 //------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ type Segment struct {
 
 // Known reports if this segment is identified.
 func (seg Segment) Known() bool {
-	return seg.Class != ""
+	return seg.Info != ""
 }
 
 // String returns a readable representation of a Segment.
