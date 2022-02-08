@@ -181,6 +181,21 @@ func BetweenAny(str string) Reader {
 	return r
 }
 
+func BuildBetweenAny(minMax ...rune) Reader {
+	if len(minMax)%2 != 0 {
+		return Any()
+	}
+
+	r := &BetweenAnyReader{}
+	for i := 0; i < len(minMax); i += 2 {
+		min := minMax[i]
+		max := minMax[i+1]
+		r.min = append(r.min, min)
+		r.max = append(r.max, max)
+	}
+	return r
+}
+
 //----------------------------------------------------------
 type BoolReader struct {
 	Value  bool
