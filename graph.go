@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 //------------------------------------------------------------------------------
@@ -78,10 +80,7 @@ func rankNodes(a *Node, b *Node) bool {
 }
 
 func (g *Graph) Append(v Value) (*Graph, bool) {
-	return g.AppendNode(&Node{Value: v})
-}
-
-func (g *Graph) AppendNode(n *Node) (*Graph, bool) {
+	n := &Node{Value: v}
 	bkp := g.Root.Token
 	if !g.Root.Covers(n.Token) {
 		if len(g.Root.Nodes) > 0 {
@@ -103,26 +102,41 @@ type jsonNode struct {
 	Children []*jsonNode `json:"children,omitempty"`
 }
 
-func MakeJSONNode(n *Node) *jsonNode {
+func makeJSONNode(n *Node) *jsonNode {
 	jn := &jsonNode{
-		Name:  n.Value.Info,
+		Name:  n.Info,
 		Value: n.Len(),
 	}
 	for _, sub := range n.Nodes {
-		jn.Children = append(jn.Children, MakeJSONNode(sub))
+		jn.Children = append(jn.Children, makeJSONNode(sub))
 	}
 	return jn
 }
 
+func makeStackLines(b *strings.Builder, prefix string, n *Node) {
+	prefix += n.Info
+	b.WriteString(prefix)
+	b.WriteRune(' ')
+	b.WriteString(strconv.Itoa(n.Len()))
+	b.WriteRune('\n')
+	for _, sub := range n.Nodes {
+		makeStackLines(b, prefix+";", sub)
+	}
+}
+
 func (g *Graph) Format(format string) string {
 	if format == "json" {
-		jn := MakeJSONNode(g.Root)
+		jn := makeJSONNode(g.Root)
 		out, _ := json.Marshal(jn)
 		return string(out)
 	} else if format == "json-i" {
-		jn := MakeJSONNode(g.Root)
+		jn := makeJSONNode(g.Root)
 		out, _ := json.MarshalIndent(jn, "", "\t")
 		return string(out)
+	} else if format == "stack" {
+		b := &strings.Builder{}
+		makeStackLines(b, "", g.Root)
+		return b.String()
 	}
 
 	return fmt.Sprintf("unknown graph format %q", format)
