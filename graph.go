@@ -146,6 +146,22 @@ func (g *Graph) Equal(oth *Graph) bool {
 	return g.Root.Equal(oth.Root)
 }
 
+func (n *Node) appendLeafs(leafs *[]Value) {
+	if len(n.Nodes) == 0 {
+		*leafs = append(*leafs, n.Value)
+	} else {
+		for _, sub := range n.Nodes {
+			sub.appendLeafs(leafs)
+		}
+	}
+}
+
+func (g *Graph) Leafs() []Value {
+	leafs := []Value{}
+	g.Root.appendLeafs(&leafs)
+	return leafs
+}
+
 func BuildGraph(name string, values []Value) *Graph {
 	g := NewGraph(name)
 	for _, v := range values {

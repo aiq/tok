@@ -4,13 +4,15 @@ import (
 	"testing"
 )
 
+func V(info string, from int, to int) Value {
+	return Value{info, MakeToken(Marker(from), Marker(to))}
+}
+
+func N(info string, from int, to int, nodes ...*Node) *Node {
+	return &Node{V(info, from, to), nodes}
+}
+
 func TestGraphAppend(t *testing.T) {
-	V := func(class string, from int, to int) Value {
-		return Value{class, MakeToken(Marker(from), Marker(to))}
-	}
-	N := func(class string, from int, to int, nodes ...*Node) *Node {
-		return &Node{V(class, from, to), nodes}
-	}
 	cases := []struct {
 		base *Graph
 		v    Value
@@ -42,13 +44,31 @@ func TestGraphAppend(t *testing.T) {
 	}
 }
 
+func TestGraphLeafs(t *testing.T) {
+	cases := []struct {
+		g   *Graph
+		exp []Value
+	}{
+		{
+			&Graph{N("root", 8, 28, N("obj", 8, 28, N("key", 10, 15), N("val", 17, 25)))},
+			[]Value{V("key", 10, 15), V("val", 17, 25)},
+		},
+	}
+	for i, c := range cases {
+		leafs := c.g.Leafs()
+		if len(leafs) != len(c.exp) {
+			t.Errorf("%d unexpected number of leafs: %d != %d", i, len(leafs), len(c.exp))
+		} else {
+			for j, l := range leafs {
+				if l != c.exp[j] {
+					t.Errorf("%d unexpected value at %d: %v", i, j, l)
+				}
+			}
+		}
+	}
+}
+
 func TestBuildGraph(t *testing.T) {
-	V := func(class string, from int, to int) Value {
-		return Value{class, MakeToken(Marker(from), Marker(to))}
-	}
-	N := func(class string, from int, to int, nodes ...*Node) *Node {
-		return &Node{V(class, from, to), nodes}
-	}
 	cases := []struct {
 		inp []Value
 		exp *Graph
