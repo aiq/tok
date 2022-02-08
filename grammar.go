@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+//------------------------------------------------------------------------------
 type Rule interface {
 	Rule() string
 }
@@ -19,6 +20,7 @@ func (rs Rules) Lines() []string {
 	return res
 }
 
+//------------------------------------------------------------------------------
 type Grammar interface {
 	Grammar() Rules
 }
@@ -57,6 +59,7 @@ func CollectRules(g interface{}) Rules {
 	return rules
 }
 
+//------------------------------------------------------------------------------
 type RuleReader struct {
 	Name string
 	Sub  Reader
@@ -74,10 +77,7 @@ func (r RuleReader) Rule() string {
 	return fmt.Sprintf("%s: %s", r.Name, r.Sub.What())
 }
 
-func Ref(name string) RuleReader {
-	return RuleReader{name, nil}
-}
-
+//------------------------------------------------------------------------------
 type ruleNameReader struct {
 	sub Reader
 }
