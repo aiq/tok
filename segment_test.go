@@ -2,10 +2,27 @@ package tok
 
 import "testing"
 
-func TestSegmentate(t *testing.T) {
-	V := func(id string, from int, to int) Value {
-		return Value{id, MakeToken(Marker(from), Marker(to))}
+func TestReverseValues(t *testing.T) {
+	cases := []struct {
+		inp []Value
+		exp []Value
+	}{
+		{
+			[]Value{V("id", 3, 8), V("val", 10, 16), V("obj", 2, 18), V("text", 0, 20)},
+			[]Value{V("text", 0, 20), V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8)},
+		},
 	}
+	for i, c := range cases {
+		ReverseValues(c.inp)
+		for j, v := range c.inp {
+			if v != c.exp[j] {
+				t.Errorf("%d unexpected values at %d: %v != %v", i, j, v, c.exp[j])
+			}
+		}
+	}
+}
+
+func TestSegmentate(t *testing.T) {
 	cases := []struct {
 		str    string
 		values []Value

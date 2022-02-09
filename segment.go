@@ -18,6 +18,12 @@ func (v Value) String() string {
 	return v.Info + v.Token.String()
 }
 
+func ReverseValues(values []Value) {
+	for i, j := 0, len(values)-1; i < j; i, j = i+1, j-1 {
+		values[i], values[j] = values[j], values[i]
+	}
+}
+
 //------------------------------------------------------------------------------
 
 // Segment groups a Token with the sub string from a Scanner.
