@@ -1,7 +1,6 @@
 package tok
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -96,54 +95,27 @@ func (g *Graph) Append(v Value) (*Graph, bool) {
 	return g, ok
 }
 
-type jsonNode struct {
-	Name     string      `json:"name"`
-	Value    int         `json:"value"`
-	Children []*jsonNode `json:"children,omitempty"`
+// Equal
+func (g *Graph) Equal(oth *Graph) bool {
+	return g.Root.Equal(oth.Root)
 }
 
-func makeJSONNode(n *Node) *jsonNode {
-	jn := &jsonNode{
-		Name:  n.Info,
-		Value: n.Len(),
-	}
-	for _, sub := range n.Nodes {
-		jn.Children = append(jn.Children, makeJSONNode(sub))
-	}
-	return jn
-}
-
-func makeStackLines(b *strings.Builder, prefix string, n *Node) {
-	prefix += n.Info
+func makeStackLines(b *strings.Builder, prefix string, i int, n *Node) {
+	prefix = fmt.Sprintf("%s%d.%s", prefix, i, n.String())
 	b.WriteString(prefix)
 	b.WriteRune(' ')
 	b.WriteString(strconv.Itoa(n.Len()))
 	b.WriteRune('\n')
-	for _, sub := range n.Nodes {
-		makeStackLines(b, prefix+";", sub)
+	for j, sub := range n.Nodes {
+		makeStackLines(b, prefix+";", j+1, sub)
 	}
 }
 
-func (g *Graph) Format(format string) string {
-	if format == "json" {
-		jn := makeJSONNode(g.Root)
-		out, _ := json.Marshal(jn)
-		return string(out)
-	} else if format == "json-i" {
-		jn := makeJSONNode(g.Root)
-		out, _ := json.MarshalIndent(jn, "", "\t")
-		return string(out)
-	} else if format == "stack" {
-		b := &strings.Builder{}
-		makeStackLines(b, "", g.Root)
-		return b.String()
-	}
-
-	return fmt.Sprintf("unknown graph format %q", format)
-}
-
-func (g *Graph) Equal(oth *Graph) bool {
-	return g.Root.Equal(oth.Root)
+// FlameStack
+func (g *Graph) FlameStack() string {
+	b := &strings.Builder{}
+	makeStackLines(b, "", 1, g.Root)
+	return b.String()
 }
 
 func (n *Node) appendLeafs(leafs *[]Value) {
@@ -156,12 +128,14 @@ func (n *Node) appendLeafs(leafs *[]Value) {
 	}
 }
 
+// Leafs
 func (g *Graph) Leafs() []Value {
 	leafs := []Value{}
 	g.Root.appendLeafs(&leafs)
 	return leafs
 }
 
+// BuildGraph
 func BuildGraph(name string, values []Value) *Graph {
 	g := NewGraph(name)
 	for _, v := range values {
@@ -170,6 +144,7 @@ func BuildGraph(name string, values []Value) *Graph {
 	return g
 }
 
+// NewGraph
 func NewGraph(name string) *Graph {
 	g := &Graph{&Node{}}
 	g.Root.Value.Info = name
