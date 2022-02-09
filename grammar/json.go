@@ -1,4 +1,4 @@
-package grammer
+package grammar
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ type JSONReader struct {
 	Object     RuleReader `name:"object"`
 	Members    RuleReader `name:"members"`
 	Member     RuleReader `name:"member"`
+	Key        RuleReader `name:"key"`
 	Array      RuleReader `name:"array"`
 	Elements   RuleReader `name:"elements"`
 	Element    RuleReader `name:"element"`
@@ -28,6 +29,8 @@ type JSONReader struct {
 	Digit      RuleReader `name:"digit"`
 	Digits     RuleReader `name:"digits"`
 	Sign       RuleReader `name:"sign"`
+	Bool       RuleReader `name:"bool"`
+	Null       RuleReader `name:"null"`
 	WS         RuleReader `name:"ws"`
 }
 
@@ -35,27 +38,30 @@ type JSONReader struct {
 func JSON() *JSONReader {
 	g := &JSONReader{}
 	SetRuleNames(g)
-	g.WS.Sub = Zom(WS())
-	g.Sign.Sub = Opt(AnyRune("+-"))
-	g.OneNine.Sub = Between('1', '9')
-	g.Digit.Sub = Digit()
-	g.Digits.Sub = Many(Digit())
-	g.Exponent.Sub = Opt(Seq(AnyRune("eE"), &g.Sign, &g.Digits))
-	g.Fraction.Sub = Opt(Seq(Rune('.'), &g.Digits))
-	g.Integer.Sub = Seq(Opt(Rune('-')), Any(Rune('0'), Seq(&g.OneNine, Opt(&g.Digits))))
-	g.Number.Sub = Seq(&g.Integer, &g.Fraction, &g.Exponent)
-	g.Hex.Sub = HexDigit()
-	g.Escape.Sub = Any(AnyRune(`"\/bfnrt`), Seq(Rune('u'), Times(4, &g.Hex)))
-	g.Character.Sub = Any(Holey(' ', utf8.MaxRune, `"\`), Seq(Rune('\\'), &g.Escape))
-	g.Characters.Sub = Zom(&g.Character)
-	g.String.Sub = Seq(Rune('"'), &g.Characters, Rune('"'))
-	g.Element.Sub = Seq(&g.WS, &g.Value, &g.WS)
-	g.Elements.Sub = Seq(&g.Element, Zom(Seq(Rune(','), &g.Element)))
-	g.Array.Sub = Seq(Rune('['), Any(&g.Elements, &g.WS), Rune(']'))
-	g.Member.Sub = Seq(&g.WS, &g.String, &g.WS, Rune(':'), &g.Element)
-	g.Members.Sub = Seq(&g.Member, Zom(Seq(Rune(','), &g.Member)))
-	g.Object.Sub = Seq(Rune('{'), Any(&g.Members, &g.WS), Rune('}'))
-	g.Value.Sub = Any(&g.Object, &g.Array, &g.String, &g.Number, Lit("true"), Lit("false"), Lit("null"))
+	g.WS.Reader = Zom(WS())
+	g.Null.Reader = Lit("null")
+	g.Bool.Reader = AnyString("true", "false")
+	g.Sign.Reader = Opt(AnyRune("+-"))
+	g.OneNine.Reader = Between('1', '9')
+	g.Digit.Reader = Digit()
+	g.Digits.Reader = Many(Digit())
+	g.Exponent.Reader = Opt(Seq(AnyRune("eE"), &g.Sign, &g.Digits))
+	g.Fraction.Reader = Opt(Seq(Rune('.'), &g.Digits))
+	g.Integer.Reader = Seq(Opt(Rune('-')), Any(Rune('0'), Seq(&g.OneNine, Opt(&g.Digits))))
+	g.Number.Reader = Seq(&g.Integer, &g.Fraction, &g.Exponent)
+	g.Hex.Reader = HexDigit()
+	g.Escape.Reader = Any(AnyRune(`"\/bfnrt`), Seq(Rune('u'), Times(4, &g.Hex)))
+	g.Character.Reader = Any(Holey(' ', utf8.MaxRune, `"\`), Seq(Rune('\\'), &g.Escape))
+	g.Characters.Reader = Zom(&g.Character)
+	g.String.Reader = Seq(Rune('"'), &g.Characters, Rune('"'))
+	g.Key.Reader = g.String.Reader
+	g.Element.Reader = Seq(&g.WS, &g.Value, &g.WS)
+	g.Elements.Reader = Seq(&g.Element, Zom(Seq(Rune(','), &g.Element)))
+	g.Array.Reader = Seq(Rune('['), Any(&g.Elements, &g.WS), Rune(']'))
+	g.Member.Reader = Seq(&g.WS, &g.Key, &g.WS, Rune(':'), &g.Element)
+	g.Members.Reader = Seq(&g.Member, Zom(Seq(Rune(','), &g.Member)))
+	g.Object.Reader = Seq(Rune('{'), Any(&g.Members, &g.WS), Rune('}'))
+	g.Value.Reader = Any(&g.Object, &g.Array, &g.String, &g.Number, &g.Bool, &g.Null)
 	return g
 }
 

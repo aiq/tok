@@ -61,12 +61,25 @@ func CollectRules(g interface{}) Rules {
 
 //------------------------------------------------------------------------------
 type RuleReader struct {
-	Name string
-	Sub  Reader
+	Name   string
+	Reader Reader
+}
+
+func (r *RuleReader) Map(f MapFunc) {
+	r.Reader = Map(r.Reader, f)
+}
+
+func (r *RuleReader) Pick(info string, values *[]Value) {
+	r.Map(func(t Token) {
+		*values = append(*values, Value{
+			Info:  info,
+			Token: t,
+		})
+	})
 }
 
 func (r *RuleReader) Read(s *Scanner) error {
-	return r.Sub.Read(s)
+	return r.Reader.Read(s)
 }
 
 func (r *RuleReader) What() string {
@@ -74,7 +87,7 @@ func (r *RuleReader) What() string {
 }
 
 func (r RuleReader) Rule() string {
-	return fmt.Sprintf("%s: %s", r.Name, r.Sub.What())
+	return fmt.Sprintf("%s: %s", r.Name, r.Reader.What())
 }
 
 //------------------------------------------------------------------------------
