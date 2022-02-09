@@ -10,6 +10,7 @@ type Token struct {
 	to   Marker
 }
 
+// Generates a Token from two Marker.
 func MakeToken(a, b Marker) Token {
 	t := Token{a, b}
 	if t.from > t.to {

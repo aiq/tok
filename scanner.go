@@ -35,7 +35,7 @@ func (s *Scanner) Scope(f ScopeFunc) bool {
 }
 
 // Returns the sub string that was scanned by f.
-func (s *Scanner) Traced(f ScopeFunc) (string, bool) {
+func (s *Scanner) Trace(f ScopeFunc) (string, bool) {
 	m := s.Mark()
 	res := f()
 	str := s.Since(m)
