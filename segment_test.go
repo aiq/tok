@@ -2,18 +2,40 @@ package tok
 
 import "testing"
 
-func TestReverseValues(t *testing.T) {
+func TestSortValues(t *testing.T) {
 	cases := []struct {
 		inp []Value
 		exp []Value
 	}{
 		{
-			[]Value{V("id", 3, 8), V("val", 10, 16), V("obj", 2, 18), V("text", 0, 20)},
-			[]Value{V("text", 0, 20), V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8)},
+			[]Value{V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8), V("text", 0, 20)},
+			[]Value{V("text", 0, 20), V("obj", 2, 18), V("id", 3, 8), V("val", 10, 16)},
 		},
 	}
 	for i, c := range cases {
-		ReverseValues(c.inp)
+		SortValues(c.inp)
+		for j, v := range c.inp {
+			if v != c.exp[j] {
+				t.Errorf("%d unexpected values at %d: %v != %v", i, j, v, c.exp[j])
+			}
+		}
+	}
+}
+
+func TestSortValuesByOrder(t *testing.T) {
+	cases := []struct {
+		inp   []Value
+		order []string
+		exp   []Value
+	}{
+		{
+			[]Value{V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8), V("text", 0, 20), V("member", 2, 18)},
+			[]string{"member", "obj"},
+			[]Value{V("text", 0, 20), V("member", 2, 18), V("obj", 2, 18), V("id", 3, 8), V("val", 10, 16)},
+		},
+	}
+	for i, c := range cases {
+		SortValuesByOrder(c.inp, c.order)
 		for j, v := range c.inp {
 			if v != c.exp[j] {
 				t.Errorf("%d unexpected values at %d: %v != %v", i, j, v, c.exp[j])

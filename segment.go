@@ -1,6 +1,9 @@
 package tok
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 //------------------------------------------------------------------------------
 
@@ -18,10 +21,55 @@ func (v Value) String() string {
 	return v.Info + v.Token.String()
 }
 
-func ReverseValues(values []Value) {
-	for i, j := 0, len(values)-1; i < j; i, j = i+1, j-1 {
-		values[i], values[j] = values[j], values[i]
+type valueSorter struct {
+	values  []Value
+	cmpFunc func(Value, Value) bool
+}
+
+func (s *valueSorter) Len() int {
+	return len(s.values)
+}
+
+func (s *valueSorter) Less(i, j int) bool {
+	return s.cmpFunc(s.values[i], s.values[j])
+}
+
+func (s *valueSorter) Swap(i, j int) {
+	s.values[i], s.values[j] = s.values[j], s.values[i]
+}
+
+func SortValues(values []Value) {
+	sorter := &valueSorter{
+		values: values,
+		cmpFunc: func(a, b Value) bool {
+			return a.Covers(b.Token) || a.Before(b.Token)
+		},
 	}
+	sort.Stable(sorter)
+}
+
+func SortValuesByOrder(values []Value, order []string) {
+	sorter := &valueSorter{
+		values: values,
+		cmpFunc: func(a, b Value) bool {
+			if a.Token != b.Token {
+				return a.Covers(b.Token) || a.Before(b.Token)
+			}
+			ai, bi := -1, -1
+			for i, info := range order {
+				if a.Info == info {
+					ai = i
+				} else if b.Info == info {
+					bi = i
+				} else if ai != -1 && bi != -1 {
+					break
+				}
+			}
+
+			return ai < bi
+		},
+	}
+	sort.Stable(sorter)
 }
 
 //------------------------------------------------------------------------------
