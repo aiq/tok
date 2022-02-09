@@ -33,7 +33,7 @@ func (s *Scanner) UseFunc(f ReadFunc) error {
 	return err
 }
 
-func (s *Scanner) TracedUse(r Reader) (string, error) {
+func (s *Scanner) TraceUse(r Reader) (string, error) {
 	m := s.Mark()
 	err := r.Read(s)
 	if err != nil {
@@ -42,9 +42,8 @@ func (s *Scanner) TracedUse(r Reader) (string, error) {
 	return s.Since(m), err
 }
 
-//----------------------------------------------------------
-// AnyReader
-type AnyReader struct {
+//------------------------------------------------------------------------------
+type anyReader struct {
 	readers []Reader
 }
 
@@ -59,7 +58,7 @@ func getDeepest(errs []error) error {
 	return deepest
 }
 
-func (r *AnyReader) Read(s *Scanner) error {
+func (r *anyReader) Read(s *Scanner) error {
 	m := s.Mark()
 	errs := []error{}
 	for _, sub := range r.readers {
@@ -77,7 +76,7 @@ func (r *AnyReader) Read(s *Scanner) error {
 	return s.ErrorFor(r.What())
 }
 
-func (r *AnyReader) What() string {
+func (r *anyReader) What() string {
 	sub := []string{}
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
@@ -85,8 +84,10 @@ func (r *AnyReader) What() string {
 	return "{ " + strings.Join(sub, " | ") + " }"
 }
 
+// Any creates a Reader that tries to Read with any of the given Reader.
+// The first Reader that reads without an error will be used.
 func Any(list ...Reader) Reader {
-	return &AnyReader{list}
+	return &anyReader{list}
 }
 
 func AnyString(list ...string) Reader {
@@ -94,51 +95,53 @@ func AnyString(list ...string) Reader {
 	for _, s := range list {
 		readers = append(readers, Lit(s))
 	}
-	return &AnyReader{readers}
+	return &anyReader{readers}
 }
 
-//----------------------------------------------------------
-type AnyRuneReader struct {
+//------------------------------------------------------------------------------
+type anyRuneReader struct {
 	str string
 }
 
-func (r *AnyRuneReader) Read(s *Scanner) error {
+func (r *anyRuneReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfAnyRune(r.str), r.What())
 }
 
-func (r *AnyRuneReader) What() string {
+func (r *anyRuneReader) What() string {
 	return "{" + strconv.Quote(r.str) + "}"
 }
 
+// AnyRune
 func AnyRune(str string) Reader {
-	return &AnyRuneReader{str}
+	return &anyRuneReader{str}
 }
 
-//----------------------------------------------------------
-type BetweenReader struct {
+//------------------------------------------------------------------------------
+type betweenReader struct {
 	min rune
 	max rune
 }
 
-func (r BetweenReader) Read(s *Scanner) error {
+func (r betweenReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfBetween(r.min, r.max), r.What())
 }
 
-func (r BetweenReader) What() string {
+func (r betweenReader) What() string {
 	return fmt.Sprintf("[%c-%c]", r.min, r.max)
 }
 
+// Between
 func Between(min rune, max rune) Reader {
-	return BetweenReader{min, max}
+	return betweenReader{min, max}
 }
 
-//----------------------------------------------------------
-type BetweenAnyReader struct {
+//------------------------------------------------------------------------------
+type betweenAnyReader struct {
 	min []rune
 	max []rune
 }
 
-func (r BetweenAnyReader) Read(s *Scanner) error {
+func (r *betweenAnyReader) Read(s *Scanner) error {
 	m := s.Mark()
 	for i := 0; i < len(r.min); i++ {
 		if s.IfBetween(r.min[i], r.max[i]) {
@@ -149,7 +152,7 @@ func (r BetweenAnyReader) Read(s *Scanner) error {
 	return s.ErrorFor(r.What())
 }
 
-func (r BetweenAnyReader) What() string {
+func (r *betweenAnyReader) What() string {
 	var b strings.Builder
 	b.WriteRune('[')
 	for i := 0; i < len(r.min); i++ {
@@ -161,13 +164,14 @@ func (r BetweenAnyReader) What() string {
 	return b.String()
 }
 
+// BetweenAny
 func BetweenAny(str string) Reader {
 	runes := []rune(str)
 	if len(runes)%3 != 0 {
 		return Any()
 	}
 
-	r := &BetweenAnyReader{}
+	r := &betweenAnyReader{}
 	for i := 0; i < len(runes); i += 3 {
 		min := runes[i]
 		sep := runes[i+1]
@@ -181,12 +185,13 @@ func BetweenAny(str string) Reader {
 	return r
 }
 
+// BuildBetweenAny
 func BuildBetweenAny(minMax ...rune) Reader {
 	if len(minMax)%2 != 0 {
 		return Any()
 	}
 
-	r := &BetweenAnyReader{}
+	r := &betweenAnyReader{}
 	for i := 0; i < len(minMax); i += 2 {
 		min := minMax[i]
 		max := minMax[i+1]
@@ -196,7 +201,7 @@ func BuildBetweenAny(minMax ...rune) Reader {
 	return r
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
 type BoolReader struct {
 	Value  bool
 	Format string
@@ -215,47 +220,51 @@ func (r *BoolReader) What() string {
 	return "bool(" + r.Format + ")"
 }
 
+// Bool
 func Bool(format string) *BoolReader {
 	return &BoolReader{
 		Format: format,
 	}
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
+// Digit creates a Reader that reads the digit runes '0'-'9'
 func Digit() Reader {
 	return Between('0', '9')
 }
 
-//----------------------------------------------------------
-type FoldReader struct {
+//------------------------------------------------------------------------------
+type foldReader struct {
 	val string
 }
 
-func (r FoldReader) Read(s *Scanner) error {
+func (r foldReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfFold(r.val), r.What())
 }
 
-func (r FoldReader) What() string {
+func (r foldReader) What() string {
 	return "f" + r.val + ""
 }
 
+// Fold
 func Fold(str string) Reader {
-	return &FoldReader{str}
+	return &foldReader{str}
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
+// HexDigit creates a Reader that reads the hex digit runes '0'-'9'/'a'-'f'/'A'-'F'.
 func HexDigit() Reader {
 	return BuildBetweenAny('0', '9', 'a', 'f', 'A', 'F')
 }
 
-//----------------------------------------------------------
-type HoleyReader struct {
+//------------------------------------------------------------------------------
+type holeyReader struct {
 	min   rune
 	max   rune
 	holes string
 }
 
-func (r HoleyReader) Read(s *Scanner) error {
+func (r holeyReader) Read(s *Scanner) error {
 	val, i := utf8.DecodeRuneInString(s.Tail())
 	if inRange(r.min, val, r.max) && !strings.ContainsRune(r.holes, val) {
 		return s.BoolErrorFor(s.Move(i), r.What())
@@ -263,15 +272,16 @@ func (r HoleyReader) Read(s *Scanner) error {
 	return s.ErrorFor(r.What())
 }
 
-func (r HoleyReader) What() string {
+func (r holeyReader) What() string {
 	return fmt.Sprintf("(u%d-u%d - %q)", r.min, r.max, r.holes)
 }
 
+// Holey
 func Holey(min rune, max rune, holes string) Reader {
-	return HoleyReader{min, max, holes}
+	return holeyReader{min, max, holes}
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
 type IntReader struct {
 	Value   int64
 	Base    int
@@ -295,29 +305,30 @@ func Int(base int, bitSize int) *IntReader {
 	}
 }
 
-//----------------------------------------------------------
-type LitReader struct {
+//------------------------------------------------------------------------------
+type litReader struct {
 	str string
 }
 
-func (r LitReader) Read(s *Scanner) error {
+func (r litReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.If(r.str), r.What())
 }
 
-func (r LitReader) What() string {
+func (r litReader) What() string {
 	return strconv.Quote(r.str)
 }
 
+// Lit
 func Lit(str string) Reader {
-	return LitReader{str}
+	return litReader{str}
 }
 
-//----------------------------------------------------------
-type ManyReader struct {
+//------------------------------------------------------------------------------
+type manyReader struct {
 	sub Reader
 }
 
-func (r ManyReader) Read(s *Scanner) error {
+func (r manyReader) Read(s *Scanner) error {
 	start := s.Mark()
 	for r.sub.Read(s) == nil {
 	}
@@ -325,23 +336,24 @@ func (r ManyReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(start < end, r.What())
 }
 
-func (r ManyReader) What() string {
+func (r manyReader) What() string {
 	return "+" + r.sub.What()
 }
 
+// Many
 func Many(r Reader) Reader {
-	return &ManyReader{r}
+	return &manyReader{r}
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
 type MapFunc func(Token)
 
-type MapReader struct {
+type mapReader struct {
 	sub Reader
 	f   MapFunc
 }
 
-func (r MapReader) Read(s *Scanner) error {
+func (r *mapReader) Read(s *Scanner) error {
 	t, err := s.TokenizeUse(r.sub)
 	if err == nil {
 		r.f(t)
@@ -349,91 +361,95 @@ func (r MapReader) Read(s *Scanner) error {
 	return err
 }
 
-func (r MapReader) What() string {
+func (r *mapReader) What() string {
 	return "map(" + r.sub.What() + ")"
 }
 
-func Map(r Reader, f MapFunc) MapReader {
-	return MapReader{r, f}
+// Map
+func Map(r Reader, f MapFunc) Reader {
+	return &mapReader{r, f}
 }
 
-//----------------------------------------------------------
-type MatchReader struct {
+//------------------------------------------------------------------------------
+type matchReader struct {
 	what string
 	f    MatchFunc
 }
 
-func (r MatchReader) Read(s *Scanner) error {
+func (r matchReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfMatch(r.f), r.what)
 }
 
-func (r MatchReader) What() string {
+func (r matchReader) What() string {
 	return r.what
 }
 
+// Match
 func Match(what string, f MatchFunc) Reader {
-	return MatchReader{what, f}
+	return matchReader{what, f}
 }
 
-//----------------------------------------------------------
-type NamedReader struct {
-	Name string
-	Sub  Reader
+//------------------------------------------------------------------------------
+type namedReader struct {
+	name string
+	sub  Reader
 }
 
-func (r *NamedReader) Read(s *Scanner) error {
-	return r.Sub.Read(s)
+func (r *namedReader) Read(s *Scanner) error {
+	return r.sub.Read(s)
 }
 
-func (r *NamedReader) What() string {
-	return r.Name
+func (r *namedReader) What() string {
+	return r.name
 }
 
-func Named(name string, r Reader) *NamedReader {
-	return &NamedReader{name, r}
+func Named(name string, r Reader) Reader {
+	return &namedReader{name, r}
 }
 
-//----------------------------------------------------------
-type OptReader struct {
+//------------------------------------------------------------------------------
+type optReader struct {
 	sub Reader
 }
 
-func (r *OptReader) Read(s *Scanner) error {
+func (r *optReader) Read(s *Scanner) error {
 	r.sub.Read(s)
 	return nil
 }
 
-func (r *OptReader) What() string {
+func (r *optReader) What() string {
 	return "?" + r.sub.What()
 }
 
+// Opt
 func Opt(r Reader) Reader {
-	return &OptReader{r}
+	return &optReader{r}
 }
 
-//----------------------------------------------------------
-type RuneReader struct {
+//------------------------------------------------------------------------------
+type runeReader struct {
 	r rune
 }
 
-func (r RuneReader) Read(s *Scanner) error {
+func (r runeReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfRune(r.r), r.What())
 }
 
-func (r RuneReader) What() string {
+func (r runeReader) What() string {
 	return strconv.QuoteRune(r.r)
 }
 
+// Rune
 func Rune(r rune) Reader {
-	return RuneReader{r}
+	return runeReader{r}
 }
 
-//----------------------------------------------------------
-type SeqReader struct {
+//------------------------------------------------------------------------------
+type seqReader struct {
 	readers []Reader
 }
 
-func (r *SeqReader) Read(s *Scanner) error {
+func (r *seqReader) Read(s *Scanner) error {
 	m := s.Mark()
 	var err error
 	for _, sub := range r.readers {
@@ -446,7 +462,7 @@ func (r *SeqReader) Read(s *Scanner) error {
 	return err
 }
 
-func (r *SeqReader) What() string {
+func (r *seqReader) What() string {
 	sub := []string{}
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
@@ -455,17 +471,17 @@ func (r *SeqReader) What() string {
 }
 
 func Seq(list ...Reader) Reader {
-	return &SeqReader{list}
+	return &seqReader{list}
 }
 
-//----------------------------------------------------------
-type TimesReader struct {
-	N   int
+//------------------------------------------------------------------------------
+type timesReader struct {
+	n   int
 	sub Reader
 }
 
-func (r *TimesReader) Read(s *Scanner) error {
-	for i := 0; i < r.N; i++ {
+func (r *timesReader) Read(s *Scanner) error {
+	for i := 0; i < r.n; i++ {
 		if e := r.sub.Read(s); e != nil {
 			return e
 		}
@@ -473,20 +489,21 @@ func (r *TimesReader) Read(s *Scanner) error {
 	return nil
 }
 
-func (r *TimesReader) What() string {
-	return fmt.Sprintf("%d*%s", r.N, r.sub.What())
+func (r *timesReader) What() string {
+	return fmt.Sprintf("%d*%s", r.n, r.sub.What())
 }
 
-func Times(n int, r Reader) *TimesReader {
-	return &TimesReader{n, r}
+// Times
+func Times(n int, r Reader) Reader {
+	return &timesReader{n, r}
 }
 
-//----------------------------------------------------------
-type ToReader struct {
+//------------------------------------------------------------------------------
+type toReader struct {
 	sub Reader
 }
 
-func (r *ToReader) Read(s *Scanner) error {
+func (r *toReader) Read(s *Scanner) error {
 	m := s.Mark()
 	for ; !s.AtEnd(); s.Move(1) {
 		if e := r.sub.Read(s); e != nil {
@@ -497,15 +514,16 @@ func (r *ToReader) Read(s *Scanner) error {
 	return s.ErrorFor(r.What())
 }
 
-func (r *ToReader) What() string {
+func (r *toReader) What() string {
 	return "->" + r.sub.What()
 }
 
+// To
 func To(r Reader) Reader {
-	return &ToReader{r}
+	return &toReader{r}
 }
 
-//----------------------------------------------------------
+//------------------------------------------------------------------------------
 type UintReader struct {
 	Value   uint64
 	Base    int
@@ -522,6 +540,7 @@ func (r *UintReader) What() string {
 	return fmt.Sprintf("uint%d", r.BitSize)
 }
 
+// Uint
 func Uint(base int, bitSize int) *UintReader {
 	return &UintReader{
 		Base:    base,
@@ -529,45 +548,47 @@ func Uint(base int, bitSize int) *UintReader {
 	}
 }
 
-//----------------------------------------------------------
-type WrapReader struct {
+//------------------------------------------------------------------------------
+type wrapReader struct {
 	what string
 	f    ReadFunc
 }
 
-func (r WrapReader) Read(s *Scanner) error {
+func (r wrapReader) Read(s *Scanner) error {
 	return r.f(s)
 }
 
-func (r WrapReader) What() string {
+func (r wrapReader) What() string {
 	return r.what
 }
 
+// Wrap
 func Wrap(what string, f ReadFunc) Reader {
-	return WrapReader{what, f}
+	return wrapReader{what, f}
 }
 
-//----------------------------------------------------------
-
+//------------------------------------------------------------------------------
+// WS
 func WS() Reader {
 	return AnyRune(" \r\n\t")
 }
 
-//----------------------------------------------------------
-type ZomReader struct {
+//------------------------------------------------------------------------------
+type zomReader struct {
 	sub Reader
 }
 
-func (r ZomReader) Read(s *Scanner) error {
+func (r zomReader) Read(s *Scanner) error {
 	for r.sub.Read(s) == nil {
 	}
 	return nil
 }
 
-func (r ZomReader) What() string {
+func (r zomReader) What() string {
 	return "*" + r.sub.What()
 }
 
+// Zom
 func Zom(r Reader) Reader {
-	return &ZomReader{r}
+	return &zomReader{r}
 }
