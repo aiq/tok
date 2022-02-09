@@ -1,4 +1,4 @@
-package grammer
+package grammar
 
 import (
 	"testing"
