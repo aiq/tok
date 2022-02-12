@@ -70,7 +70,7 @@ func (s *Scanner) Get(t Token) string {
 }
 
 //------------------------------------------------------------------------------
-// Marks the sub string that was scanned by f.
+// Tokenize marks the sub string that was scanned by f.
 func (s *Scanner) Tokenize(f ScopeFunc) (Token, bool) {
 	a := s.Mark()
 	res := f()
@@ -81,6 +81,7 @@ func (s *Scanner) Tokenize(f ScopeFunc) (Token, bool) {
 	return MakeToken(a, b), res
 }
 
+// TokenizeUse marks the sub string that was read by r.
 func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
 	a := s.Mark()
 	err := r.Read(s)
@@ -94,4 +95,22 @@ func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
 // Returns a sub string from the text that will be scanned.
 func (s *Scanner) Since(m Marker) string {
 	return s.Get(MakeToken(m, Marker(s.pos)))
+}
+
+// Capture returns the sub string that was scanned by f.
+func (s *Scanner) Capture(f ScopeFunc) (string, bool) {
+	t, ok := s.Tokenize(f)
+	if ok {
+		return s.Get(t), true
+	}
+	return "", false
+}
+
+// CaptureUse returns the sub string that was scanned by r.
+func (s *Scanner) CaptureUse(r Reader) (string, error) {
+	t, err := s.TokenizeUse(r)
+	if err == nil {
+		return s.Get(t), nil
+	}
+	return "", err
 }
