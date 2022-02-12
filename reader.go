@@ -352,6 +352,54 @@ func Int(base int, bitSize int) *IntReader {
 }
 
 //------------------------------------------------------------------------------
+type janusBeginReader struct {
+	reader Reader
+	end    *janusEndReader
+	name   string
+}
+
+func (r *janusBeginReader) Read(s *Scanner) error {
+	t, err := s.TokenizeUse(r.reader)
+	if err == nil {
+		r.end.reader.str = s.Get(t)
+	}
+	return err
+}
+
+func (r *janusBeginReader) What() string {
+	return "!" + r.name + "<" + r.reader.What()
+}
+
+type janusEndReader struct {
+	reader litReader
+	name   string
+}
+
+func (r *janusEndReader) Read(s *Scanner) error {
+	return r.reader.Read(s)
+}
+
+func (r *janusEndReader) What() string {
+	return "!" + r.name + ">"
+}
+
+// Janus creates two Reader.
+// The first one tries to match with r.
+// If the first matches expects the second the matched sub string.
+func Janus(name string, r Reader) (Reader, Reader) {
+	end := &janusEndReader{
+		reader: litReader{""},
+		name:   name,
+	}
+	beg := &janusBeginReader{
+		reader: r,
+		end:    end,
+		name:   name,
+	}
+	return beg, end
+}
+
+//------------------------------------------------------------------------------
 type invalidReader struct {
 	err error
 }
@@ -428,10 +476,10 @@ func (r *mapReader) Read(s *Scanner) error {
 }
 
 func (r *mapReader) What() string {
-	return "map(" + r.sub.What() + ")"
+	return r.sub.What()
 }
 
-// Map creates a Reader that passed the part that r reads forward to f.
+// Map creates a Reader that passed the Token that r reads forward to f.
 func Map(r Reader, f MapFunc) Reader {
 	return &mapReader{r, f}
 }

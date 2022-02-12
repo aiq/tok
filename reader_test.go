@@ -57,3 +57,26 @@ func TestReaderWhat(t *testing.T) {
 		}
 	}
 }
+
+func TestJanus(t *testing.T) {
+	check := func(str, expStr string, e, expE error) {
+		if str != expStr {
+			t.Errorf("unexpected string: %q != %q", str, expStr)
+		}
+		if e != expE {
+			t.Errorf("unexpected error value: %v", e)
+		}
+	}
+	beg, end := Janus("i", Many(Between('a', 'z')))
+	str, err := NewScanner("two two").CaptureUse(Seq(beg, WS(), end))
+	check(str, "two two", err, nil)
+
+	beg, end = Janus("c", Many(Rune('=')))
+	comBeg := Seq(Rune('['), beg, Rune('['))
+	comEnd := Seq(Rune(']'), end, Rune(']'))
+	str, err = NewScanner("[==[long lua string]==] ~=").CaptureUse(Seq(comBeg, To(comEnd)))
+	check(str, "[==[long lua string", err, nil)
+
+	str, err = NewScanner("[==[long lua string]==] ~=").CaptureUse(Seq(comBeg, Past(comEnd)))
+	check(str, "[==[long lua string]==]", err, nil)
+}
