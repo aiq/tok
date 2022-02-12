@@ -574,7 +574,9 @@ type toReader struct {
 func (r *toReader) Read(s *Scanner) error {
 	m := s.Mark()
 	for ; !s.AtEnd(); s.Move(1) {
-		if e := r.sub.Read(s); e != nil {
+		subM := s.Mark()
+		if e := r.sub.Read(s); e == nil {
+			s.ToMarker(subM)
 			return nil
 		}
 	}
@@ -586,7 +588,7 @@ func (r *toReader) What() string {
 	return "->" + r.sub.What()
 }
 
-// To creates a Reader that reads until r matches.
+// To creates a Reader that reads until r matches, without the matched part.
 func To(r Reader) Reader {
 	return &toReader{r}
 }
