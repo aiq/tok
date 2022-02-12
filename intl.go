@@ -4,6 +4,8 @@ import (
 	"unicode/utf8"
 )
 
+//------------------------------------------------------------------------------
+
 type revItr struct {
 	Str  string
 	init int
@@ -30,4 +32,17 @@ func (itr *revItr) next() bool {
 
 func (itr *revItr) pos() int {
 	return itr.init - len(itr.Str)
+}
+
+//------------------------------------------------------------------------------
+
+func getPrefix(str string, n int) (string, bool) {
+	count := 0
+	for i := range str {
+		if count == n {
+			return str[:i], true
+		}
+		count++
+	}
+	return str, false
 }

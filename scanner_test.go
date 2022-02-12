@@ -6,6 +6,25 @@ import (
 	"unicode"
 )
 
+func TestScanString(t *testing.T) {
+	checkPart := func(p, expP string, ok, expOk bool) {
+		if p != expP || ok != expOk {
+			t.Errorf("unexpected ScanString result: %s / %v", p, ok)
+		}
+	}
+	sca := NewScanner("Hi, 世界! I saw a ☃ in w2s34")
+	part, ok := sca.ScanString(5)
+	checkPart(part, "Hi, 世", ok, true)
+	part, ok = sca.ScanString(3)
+	checkPart(part, "界! ", ok, true)
+	part, ok = sca.ScanString(8)
+	checkPart(part, "I saw a ", ok, true)
+	part, ok = sca.ScanString(1)
+	checkPart(part, "☃", ok, true)
+	part, ok = sca.ScanString(20)
+	checkPart(part, " in w2s34", ok, false)
+}
+
 type headTail struct {
 	head string
 	tail string

@@ -54,6 +54,17 @@ func (s *Scanner) While(f ScopeFunc) bool {
 	return start < end
 }
 
+// ScanString reads n runes as string from the scanner.
+// The scanner will only be moved if all n runes can be read from the scanner.
+// Returns true if s was moved, otherwise false.
+func (s *Scanner) ScanString(n int) (string, bool) {
+	sub, ok := getPrefix(s.Tail(), n)
+	if ok {
+		ok = s.Move(len(sub))
+	}
+	return sub, ok
+}
+
 // ---------------------------------------------------------------------- string
 // Moves s the length of str forward if Tail() has str as the prefix.
 // Returns true if s was moved, otherwise false.
