@@ -2,3 +2,61 @@
 
 Go package to parse strings.
 Inpired by the cScanner implementation from link:https://clingo.aiq.dk/[clingo].
+
+== Scanner
+
+Scanner is the main type to parse a string.
+It has basic functions to parse a text forward or backward.
+The basic functions exist for the following types:
+
+* string
+* fold
+* rune
+* anyrune
+* between
+* match
+
+Basic functions return just a bool.
+Additional has the scanner read functions to read values.
+Read functions return the value and an error if it was not possible to read the value.
+The package has the following read functions:
+
+* ReadBool
+* ReadInt
+* ReadUint
+
+== Reader
+
+Readers can be used by the scanner to read from the scanner.
+tok has the following build-in Reader:
+Any, AnyRune, Between, BetweenAny, Bool, Digit, Fold, Holey, Int, Lit, Map, Match, Opt, Rune, Seq, Times, To, Uint, Wrap, WS, Zom
+
+
+== Mark Types
+
+Marker::
+can be used to mark a scanner position
+
+Token::
+can be used to mark a range of the scanner
+
+Value::
+can be used tag a Token with addition information
+
+Segment::
+groups a value with the corresponding sub string
+
+== Grammar
+
+A grammar is a Reader that has RuleReader that are connected.
+Check the grammar for JSON in the gramar package.
+
+== Graph
+
+A graph allows to arrange the picked values hierarchically via Nodes.
+With the FlameStack function is it possible to generate a string that can be used to produce a FlameGraph:
+
+[source,shell]
+----
+$ flamegraph.pl flame.stack > graph.svg 
+----
