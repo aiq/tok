@@ -46,7 +46,7 @@ func TestReaderWhat(t *testing.T) {
 		{Fold("true"), `~"true"`},
 		{Holey('a', 'z', "ox"), `(<az> - "ox")`},
 		{Seq(Rune('!'), Many(AnyRune(" +-")), Lit("abc")), `> '!' +[" +-"] "abc" >`},
-		{To(Bool("")), `->bool{}`},
+		{To(Bool("")), `->bool{""}`},
 		{Uint(16, 64), `uint{16,64}`},
 		{WS(), `[" \r\n\t"]`},
 		{Zom(WS()), `*[" \r\n\t"]`},
