@@ -494,6 +494,31 @@ func Opt(r Reader) Reader {
 }
 
 //------------------------------------------------------------------------------
+type pastReader struct {
+	sub Reader
+}
+
+func (r *pastReader) Read(s *Scanner) error {
+	m := s.Mark()
+	for ; !s.AtEnd(); s.Move(1) {
+		if e := r.sub.Read(s); e == nil {
+			return nil
+		}
+	}
+	s.ToMarker(m)
+	return s.ErrorFor(r.What())
+}
+
+func (r *pastReader) What() string {
+	return "-->" + r.sub.What()
+}
+
+// Past creates a Reader that reads until r matches, with the matched part.
+func Past(r Reader) Reader {
+	return &pastReader{r}
+}
+
+//------------------------------------------------------------------------------
 type runeReader struct {
 	r rune
 }
