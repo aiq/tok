@@ -7,14 +7,17 @@ import (
 	"unicode/utf8"
 )
 
-// Type
+// ReadFunc represents the prototype of a read function.
 type ReadFunc func(*Scanner) error
 
+// Reader can be used by the scanner to read from the scanner.
 type Reader interface {
 	Read(s *Scanner) error
 	What() string
 }
 
+// Use uses r on the scanner.
+// The scanner is only moved if no error occurs.
 func (s *Scanner) Use(r Reader) error {
 	m := s.Mark()
 	err := r.Read(s)
@@ -24,6 +27,8 @@ func (s *Scanner) Use(r Reader) error {
 	return err
 }
 
+// UseFunc uses f on the scanner.
+// The scanner is only moved if no error occurs.
 func (s *Scanner) UseFunc(f ReadFunc) error {
 	m := s.Mark()
 	err := f(s)
@@ -33,9 +38,20 @@ func (s *Scanner) UseFunc(f ReadFunc) error {
 	return err
 }
 
+// TraceUse traces the readed sub string.
 func (s *Scanner) TraceUse(r Reader) (string, error) {
 	m := s.Mark()
 	err := r.Read(s)
+	if err != nil {
+		s.ToMarker(m)
+	}
+	return s.Since(m), err
+}
+
+// TraceUseFunc traces the via f traced sub string.
+func (s *Scanner) TraceUseFunc(f ReadFunc) (string, error) {
+	m := s.Mark()
+	err := f(s)
 	if err != nil {
 		s.ToMarker(m)
 	}
@@ -51,7 +67,7 @@ func getDeepest(errs []error) error {
 	var deepest ReadError
 	for _, e := range errs {
 		re, ok := e.(ReadError)
-		if ok && re.DeeperAs(deepest) {
+		if ok && re.Later(deepest) {
 			deepest = re
 		}
 	}
@@ -81,7 +97,7 @@ func (r *anyReader) What() string {
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
 	}
-	return "{ " + strings.Join(sub, " | ") + " }"
+	return "[ " + strings.Join(sub, " ") + " ]"
 }
 
 // Any creates a Reader that tries to Read with any of the given Reader.
@@ -90,7 +106,15 @@ func Any(list ...Reader) Reader {
 	return &anyReader{list}
 }
 
-func AnyString(list ...string) Reader {
+func AnyFold(list ...string) Reader {
+	readers := []Reader{}
+	for _, s := range list {
+		readers = append(readers, Fold(s))
+	}
+	return &anyReader{readers}
+}
+
+func AnyLit(list ...string) Reader {
 	readers := []Reader{}
 	for _, s := range list {
 		readers = append(readers, Lit(s))
@@ -108,7 +132,7 @@ func (r *anyRuneReader) Read(s *Scanner) error {
 }
 
 func (r *anyRuneReader) What() string {
-	return "{" + strconv.Quote(r.str) + "}"
+	return "[" + strconv.QuoteToGraphic(r.str) + "]"
 }
 
 // AnyRune
@@ -126,8 +150,16 @@ func (r betweenReader) Read(s *Scanner) error {
 	return s.BoolErrorFor(s.IfBetween(r.min, r.max), r.What())
 }
 
+func quoteRune(r rune) string {
+	return strings.Trim(strconv.QuoteRuneToGraphic(r), "'")
+}
+
+func quoteBetween(min, max rune) string {
+	return fmt.Sprintf("<%s%s>", quoteRune(min), quoteRune(max))
+}
+
 func (r betweenReader) What() string {
-	return fmt.Sprintf("[%c-%c]", r.min, r.max)
+	return quoteBetween(r.min, r.max)
 }
 
 // Between
@@ -154,13 +186,13 @@ func (r *betweenAnyReader) Read(s *Scanner) error {
 
 func (r *betweenAnyReader) What() string {
 	var b strings.Builder
-	b.WriteRune('[')
+	b.WriteString("[<")
 	for i := 0; i < len(r.min); i++ {
-		b.WriteRune(r.min[i])
-		b.WriteRune('-')
-		b.WriteRune(r.max[i])
+		b.WriteRune(' ')
+		b.WriteString(quoteRune(r.min[i]))
+		b.WriteString(quoteRune(r.max[i]))
 	}
-	b.WriteRune(']')
+	b.WriteString(" >]")
 	return b.String()
 }
 
@@ -168,7 +200,7 @@ func (r *betweenAnyReader) What() string {
 func BetweenAny(str string) Reader {
 	runes := []rune(str)
 	if len(runes)%3 != 0 {
-		return Any()
+		return InvalidReader("invalid init string for BetweenAny: %q", str)
 	}
 
 	r := &betweenAnyReader{}
@@ -177,7 +209,7 @@ func BetweenAny(str string) Reader {
 		sep := runes[i+1]
 		max := runes[i+2]
 		if sep != '-' {
-			return Any()
+			return InvalidReader("invalid init string for BetweenAny: %q", str)
 		}
 		r.min = append(r.min, min)
 		r.max = append(r.max, max)
@@ -188,7 +220,7 @@ func BetweenAny(str string) Reader {
 // BuildBetweenAny
 func BuildBetweenAny(minMax ...rune) Reader {
 	if len(minMax)%2 != 0 {
-		return Any()
+		return InvalidReader("odd number of min-max values for BetweenAny: %d", len(minMax))
 	}
 
 	r := &betweenAnyReader{}
@@ -214,10 +246,7 @@ func (r *BoolReader) Read(s *Scanner) error {
 }
 
 func (r *BoolReader) What() string {
-	if r.Format == "" {
-		return "bool"
-	}
-	return "bool(" + r.Format + ")"
+	return "bool{" + r.Format + "}"
 }
 
 // Bool
@@ -243,7 +272,7 @@ func (r foldReader) Read(s *Scanner) error {
 }
 
 func (r foldReader) What() string {
-	return "f" + r.val + ""
+	return "~" + strconv.QuoteToGraphic(r.val)
 }
 
 // Fold
@@ -273,7 +302,7 @@ func (r holeyReader) Read(s *Scanner) error {
 }
 
 func (r holeyReader) What() string {
-	return fmt.Sprintf("(u%d-u%d - %q)", r.min, r.max, r.holes)
+	return fmt.Sprintf("(%s - %s)", quoteBetween(r.min, r.max), strconv.QuoteToGraphic(r.holes))
 }
 
 // Holey
@@ -295,14 +324,33 @@ func (r *IntReader) Read(s *Scanner) error {
 }
 
 func (r *IntReader) What() string {
-	return fmt.Sprintf("int%d", r.BitSize)
+	return fmt.Sprintf("int{%d,%d}", r.Base, r.BitSize)
 }
 
+// Int
 func Int(base int, bitSize int) *IntReader {
 	return &IntReader{
 		Base:    base,
 		BitSize: bitSize,
 	}
+}
+
+//------------------------------------------------------------------------------
+type invalidReader struct {
+	err error
+}
+
+func (r invalidReader) Read(s *Scanner) error {
+	return fmt.Errorf("invalid reader: %v", r.err)
+}
+
+func (r invalidReader) What() string {
+	return fmt.Sprintf("(invalid reader: %v)", r.err)
+}
+
+// InvalidReader
+func InvalidReader(format string, a ...interface{}) invalidReader {
+	return invalidReader{fmt.Errorf(format, a...)}
 }
 
 //------------------------------------------------------------------------------
@@ -315,7 +363,7 @@ func (r litReader) Read(s *Scanner) error {
 }
 
 func (r litReader) What() string {
-	return strconv.Quote(r.str)
+	return strconv.QuoteToGraphic(r.str)
 }
 
 // Lit
@@ -436,7 +484,7 @@ func (r runeReader) Read(s *Scanner) error {
 }
 
 func (r runeReader) What() string {
-	return strconv.QuoteRune(r.r)
+	return strconv.QuoteRuneToGraphic(r.r)
 }
 
 // Rune
@@ -467,7 +515,7 @@ func (r *seqReader) What() string {
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
 	}
-	return "( " + strings.Join(sub, " > ") + " )"
+	return "> " + strings.Join(sub, " ") + " >"
 }
 
 func Seq(list ...Reader) Reader {
@@ -537,7 +585,7 @@ func (r *UintReader) Read(s *Scanner) error {
 }
 
 func (r *UintReader) What() string {
-	return fmt.Sprintf("uint%d", r.BitSize)
+	return fmt.Sprintf("uint{%d,%d}", r.Base, r.BitSize)
 }
 
 // Uint

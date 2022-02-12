@@ -40,7 +40,7 @@ func JSON() *JSONReader {
 	SetRuleNames(g)
 	g.WS.Reader = Zom(WS())
 	g.Null.Reader = Lit("null")
-	g.Bool.Reader = AnyString("true", "false")
+	g.Bool.Reader = AnyLit("true", "false")
 	g.Sign.Reader = Opt(AnyRune("+-"))
 	g.OneNine.Reader = Between('1', '9')
 	g.Digit.Reader = Digit()

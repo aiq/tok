@@ -167,36 +167,84 @@ func (s *Scanner) RevWhileAnyRune(str string) bool {
 // Moves s one rune backward if the last rune in Head() is >= min and <= max.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfBetween(min, max rune) bool {
-	return false
+	last, i := utf8.DecodeLastRuneInString(s.Head())
+	if i == -1 || inRange(min, last, max) {
+		return false
+	}
+	return s.Move(-i)
 }
 
 // Moves s to the last rune in Head() that is >= min and <= max.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevToBetween(min, max rune) bool {
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if inRange(min, itr.Val, max) {
+			return s.Move(-itr.pos())
+		}
+	}
 	return false
 }
 
 // Moves s to the last rune in Head() that is < min or > max.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileBetween(min, max rune) bool {
-	return false
+	if len(s.Head()) == 0 {
+		return false
+	}
+
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if !inRange(min, itr.Val, max) {
+			if itr.pos() == len(s.Head()) {
+				return false
+			}
+			return s.Move(-itr.pos())
+		}
+	}
+
+	return s.Move(-itr.pos())
 }
 
 // ---------------------------------------------------------------------- match
 // Moves s one rune backward if the last rune in Head() passes the check.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevIfMatch(check MatchFunc) bool {
-	return false
+	last, i := utf8.DecodeLastRuneInString(s.Head())
+	if i == -1 || check(last) {
+		return false
+	}
+	return s.Move(-i)
 }
 
 // Moves s to the last rune in Head() that passes the ckeck.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevToMatch(check MatchFunc) bool {
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if check(itr.Val) {
+			return s.Move(-itr.pos())
+		}
+	}
 	return false
 }
 
 // Moves s to the last rune in Head() that does not pass the ckeck.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) RevWhileMatch(check MatchFunc) bool {
-	return false
+	if len(s.Head()) == 0 {
+		return false
+	}
+
+	itr := makeRevItr(s.Head())
+	for itr.next() {
+		if !check(itr.Val) {
+			if itr.pos() == len(s.Head()) {
+				return false
+			}
+			return s.Move(-itr.pos())
+		}
+	}
+
+	return s.Move(-itr.pos())
 }

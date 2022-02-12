@@ -9,11 +9,13 @@ import (
 
 //------------------------------------------------------------------------------
 
+// Node
 type Node struct {
 	Value
 	Nodes []*Node
 }
 
+// Equal
 func (n *Node) Equal(oth *Node) bool {
 	if n.Value != oth.Value {
 		return false
@@ -45,6 +47,7 @@ func (s nodeByPos) Swap(i, j int) {
 
 //------------------------------------------------------------------------------
 
+// Graph allows to arrange the picked values hierarchically.
 type Graph struct {
 	Root *Node
 }
@@ -78,6 +81,7 @@ func rankNodes(a *Node, b *Node) bool {
 	return true
 }
 
+// Append appends a Values to a graph.
 func (g *Graph) Append(v Value) (*Graph, bool) {
 	n := &Node{Value: v}
 	bkp := g.Root.Token
@@ -128,14 +132,15 @@ func (n *Node) appendLeafs(leafs *[]Value) {
 	}
 }
 
-// Leafs
+// Leafs returns the values of a graph that hang on the leafs.
 func (g *Graph) Leafs() []Value {
 	leafs := []Value{}
 	g.Root.appendLeafs(&leafs)
 	return leafs
 }
 
-// BuildGraph
+// BuildGraph creates a graph with the values.
+// The name argument will be used as the info of the root node.
 func BuildGraph(name string, values []Value) *Graph {
 	g := NewGraph(name)
 	for _, v := range values {
@@ -144,7 +149,7 @@ func BuildGraph(name string, values []Value) *Graph {
 	return g
 }
 
-// NewGraph
+// NewGraph creates an empty graph with name as the info of the root node.
 func NewGraph(name string) *Graph {
 	g := &Graph{&Node{}}
 	g.Root.Value.Info = name

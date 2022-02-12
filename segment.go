@@ -6,17 +6,19 @@ import (
 )
 
 //------------------------------------------------------------------------------
-
+// Value is a Token with additional Meta-Information that can be stored in Info.
 type Value struct {
 	Info string
 	Token
 }
 
+// Split splits a Value into two parts via sep.
 func (v Value) Split(sep Value) (Value, Value) {
 	l, r := v.Token.Split(sep.Token)
 	return Value{v.Info, l}, Value{v.Info, r}
 }
 
+// String returns a readable representation of a Value.
 func (v Value) String() string {
 	return v.Info + v.Token.String()
 }
@@ -38,6 +40,8 @@ func (s *valueSorter) Swap(i, j int) {
 	s.values[i], s.values[j] = s.values[j], s.values[i]
 }
 
+// SortValues sorts the values in a slice.
+// Values that cover other values will appear before the covered values.
 func SortValues(values []Value) {
 	sorter := &valueSorter{
 		values: values,
@@ -48,6 +52,8 @@ func SortValues(values []Value) {
 	sort.Stable(sorter)
 }
 
+// SortValuesByOrder sorts like SortValues with an order as additional tiebreaker.
+// The appearence of an information in the order slice determines the order for values with equal tokens.
 func SortValuesByOrder(values []Value, order []string) {
 	sorter := &valueSorter{
 		values: values,
@@ -80,7 +86,7 @@ type Segment struct {
 	Sub string
 }
 
-// Known reports if this segment is identified.
+// Known reports if information about this segment exist.
 func (seg Segment) Known() bool {
 	return seg.Info != ""
 }

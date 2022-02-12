@@ -8,10 +8,12 @@ type ReadError struct {
 	What string
 }
 
-func (e ReadError) DeeperAs(oth ReadError) bool {
+// Later checks if e occurred later as oth.
+func (e ReadError) Later(oth ReadError) bool {
 	return e.Marker >= oth.Marker
 }
 
+// Error function to match the error interface.
 func (e ReadError) Error() string {
 	return fmt.Sprintf("not able to read %s at %d", e.What, e.Marker)
 }
