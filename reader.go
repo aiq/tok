@@ -106,6 +106,8 @@ func Any(list ...Reader) Reader {
 	return &anyReader{list}
 }
 
+// AnyFold creates a Reader that tries to Read any of the strings in list.
+// The first string that matches under Unicode case-folding will be used.
 func AnyFold(list ...string) Reader {
 	readers := []Reader{}
 	for _, s := range list {
@@ -114,6 +116,7 @@ func AnyFold(list ...string) Reader {
 	return &anyReader{readers}
 }
 
+// AnyLit creates a Reader that tries to Read any of the strings in list.
 func AnyLit(list ...string) Reader {
 	readers := []Reader{}
 	for _, s := range list {
@@ -135,7 +138,7 @@ func (r *anyRuneReader) What() string {
 	return "[" + strconv.QuoteToGraphic(r.str) + "]"
 }
 
-// AnyRune
+// AnyRune creates a Reader that tries to Read any of the runes in list.
 func AnyRune(str string) Reader {
 	return &anyRuneReader{str}
 }
@@ -162,7 +165,7 @@ func (r betweenReader) What() string {
 	return quoteBetween(r.min, r.max)
 }
 
-// Between
+// Between creates a Reader that tries to Read a rune that is >= min and <= max.
 func Between(min rune, max rune) Reader {
 	return betweenReader{min, max}
 }
@@ -196,7 +199,9 @@ func (r *betweenAnyReader) What() string {
 	return b.String()
 }
 
-// BetweenAny
+// BetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that str descibes.
+// A range can look like "a-z", multible ranges can look like "a-zA-Z0-9".
+// Invalid str values that can't be interpreted lead to an invalid reader.
 func BetweenAny(str string) Reader {
 	runes := []rune(str)
 	if len(runes)%3 != 0 {
@@ -217,7 +222,8 @@ func BetweenAny(str string) Reader {
 	return r
 }
 
-// BuildBetweenAny
+// BetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that str descibes.
+// The number minMax arguments must be even, an invalid number of minMax values lead to an invalid reader.
 func BuildBetweenAny(minMax ...rune) Reader {
 	if len(minMax)%2 != 0 {
 		return InvalidReader("odd number of min-max values for BetweenAny: %d", len(minMax))
@@ -234,6 +240,7 @@ func BuildBetweenAny(minMax ...rune) Reader {
 }
 
 //------------------------------------------------------------------------------
+// BoolReader is a Reader that stores the readed bool value in the field Value.
 type BoolReader struct {
 	Value  bool
 	Format string
@@ -246,10 +253,16 @@ func (r *BoolReader) Read(s *Scanner) error {
 }
 
 func (r *BoolReader) What() string {
-	return "bool{" + r.Format + "}"
+	return "bool{" + strconv.QuoteToGraphic(r.Format) + "}"
 }
 
-// Bool
+// Bool creates a Reader to Read bool values from the scanner.
+// Valid format values are
+// - "l" for true and false
+// - "U" for TRUE and FALSE
+// - "Cc" for True and False
+// - "*" for all cases
+// An empty format string will be interpreted as "*".
 func Bool(format string) *BoolReader {
 	return &BoolReader{
 		Format: format,
@@ -275,7 +288,7 @@ func (r foldReader) What() string {
 	return "~" + strconv.QuoteToGraphic(r.val)
 }
 
-// Fold
+// AnyFold creates a Reader that tries to Read a string under Unicode case-folding.
 func Fold(str string) Reader {
 	return &foldReader{str}
 }
@@ -305,12 +318,13 @@ func (r holeyReader) What() string {
 	return fmt.Sprintf("(%s - %s)", quoteBetween(r.min, r.max), strconv.QuoteToGraphic(r.holes))
 }
 
-// Holey
+// Holey creates a Reader that tries to Read a rune that is >= min and <= max without the runes in holes.
 func Holey(min rune, max rune, holes string) Reader {
 	return holeyReader{min, max, holes}
 }
 
 //------------------------------------------------------------------------------
+// IntReader is a Reader that stores the readed int value in the field Value.
 type IntReader struct {
 	Value   int64
 	Base    int
@@ -327,7 +341,9 @@ func (r *IntReader) What() string {
 	return fmt.Sprintf("int{%d,%d}", r.Base, r.BitSize)
 }
 
-// Int
+// Int creates a Reader to Read int values from the scanner.
+// Valid base values are 8. 10 and 16.
+// Valid bitSize values are 8, 16, 32 and 64.
 func Int(base int, bitSize int) *IntReader {
 	return &IntReader{
 		Base:    base,
@@ -348,7 +364,8 @@ func (r invalidReader) What() string {
 	return fmt.Sprintf("(invalid reader: %v)", r.err)
 }
 
-// InvalidReader
+// InvalidReader is a Reader that allways fails.
+// The arguments will be passed to fmt.Errorf.
 func InvalidReader(format string, a ...interface{}) invalidReader {
 	return invalidReader{fmt.Errorf(format, a...)}
 }
@@ -366,7 +383,7 @@ func (r litReader) What() string {
 	return strconv.QuoteToGraphic(r.str)
 }
 
-// Lit
+// Lit creates a Reader that tries to read the string str.
 func Lit(str string) Reader {
 	return litReader{str}
 }
@@ -388,7 +405,8 @@ func (r manyReader) What() string {
 	return "+" + r.sub.What()
 }
 
-// Many
+// Many creates a Reader that expects that r matches one or more times.
+// See Zom for a Reader that expects zero or more.
 func Many(r Reader) Reader {
 	return &manyReader{r}
 }
@@ -413,7 +431,7 @@ func (r *mapReader) What() string {
 	return "map(" + r.sub.What() + ")"
 }
 
-// Map
+// Map creates a Reader that passed the part that r reads forward to f.
 func Map(r Reader, f MapFunc) Reader {
 	return &mapReader{r, f}
 }
@@ -432,7 +450,7 @@ func (r matchReader) What() string {
 	return r.what
 }
 
-// Match
+// Match creates a Reader that tries to read a rune that matches by f.
 func Match(what string, f MatchFunc) Reader {
 	return matchReader{what, f}
 }
@@ -451,6 +469,7 @@ func (r *namedReader) What() string {
 	return r.name
 }
 
+// Named creates a Reader with a custom name that the function What returns.
 func Named(name string, r Reader) Reader {
 	return &namedReader{name, r}
 }
@@ -469,7 +488,7 @@ func (r *optReader) What() string {
 	return "?" + r.sub.What()
 }
 
-// Opt
+// Opt creates Reader that catches the error that r can produce and returns allways nil
 func Opt(r Reader) Reader {
 	return &optReader{r}
 }
@@ -487,7 +506,7 @@ func (r runeReader) What() string {
 	return strconv.QuoteRuneToGraphic(r.r)
 }
 
-// Rune
+// Rune creates a Reader that tries to read r.
 func Rune(r rune) Reader {
 	return runeReader{r}
 }
@@ -518,6 +537,7 @@ func (r *seqReader) What() string {
 	return "> " + strings.Join(sub, " ") + " >"
 }
 
+// Seq creates a Reader that tries to Read with all readers in list sequential.
 func Seq(list ...Reader) Reader {
 	return &seqReader{list}
 }
@@ -541,7 +561,7 @@ func (r *timesReader) What() string {
 	return fmt.Sprintf("%d*%s", r.n, r.sub.What())
 }
 
-// Times
+// Times creates a Reader that tries to Read n times with r.
 func Times(n int, r Reader) Reader {
 	return &timesReader{n, r}
 }
@@ -566,12 +586,13 @@ func (r *toReader) What() string {
 	return "->" + r.sub.What()
 }
 
-// To
+// To creates a Reader that reads until r matches.
 func To(r Reader) Reader {
 	return &toReader{r}
 }
 
 //------------------------------------------------------------------------------
+// UintReader is a Reader that stores the readed uint value in the field Value.
 type UintReader struct {
 	Value   uint64
 	Base    int
@@ -588,7 +609,9 @@ func (r *UintReader) What() string {
 	return fmt.Sprintf("uint{%d,%d}", r.Base, r.BitSize)
 }
 
-// Uint
+// Uint creates a Reader to Read uint values from the scanner.
+// Valid base values are 8, 10 and 16.
+// Valid bitSize values are 8, 16, 32 and 64.
 func Uint(base int, bitSize int) *UintReader {
 	return &UintReader{
 		Base:    base,
@@ -610,13 +633,13 @@ func (r wrapReader) What() string {
 	return r.what
 }
 
-// Wrap
+// Wrap creates a Reader that wraps f.
 func Wrap(what string, f ReadFunc) Reader {
 	return wrapReader{what, f}
 }
 
 //------------------------------------------------------------------------------
-// WS
+// WS creates a Reader to read one whitespace character(" \r\n\t").
 func WS() Reader {
 	return AnyRune(" \r\n\t")
 }
@@ -636,7 +659,8 @@ func (r zomReader) What() string {
 	return "*" + r.sub.What()
 }
 
-// Zom
+// Zom creates a Reader that expects that r matches zero or more times.
+// See Many for a Reader that expects one or more.
 func Zom(r Reader) Reader {
 	return &zomReader{r}
 }
