@@ -34,7 +34,8 @@ type JSONReader struct {
 	WS         RuleReader `name:"ws"`
 }
 
-// based on https://www.crockford.com/mckeeman.html
+// JSON creates a Grammar to Read a JSON file.
+// The implementation is based on https://www.crockford.com/mckeeman.html.
 func JSON() *JSONReader {
 	g := &JSONReader{}
 	SetRuleNames(g)
@@ -68,8 +69,7 @@ func JSON() *JSONReader {
 func (r *JSONReader) Read(s *Scanner) error {
 	err := r.Element.Read(s)
 	if err != nil {
-		l, c := s.LineCol(1)
-		return fmt.Errorf("json parse error at %d:%d: %v", l, c, err)
+		return fmt.Errorf("json parse error: %v", err)
 	}
 	return nil
 }
