@@ -4,37 +4,37 @@ import (
 	"testing"
 )
 
-func V(info string, from int, to int) Value {
-	return Value{info, MakeToken(Marker(from), Marker(to))}
+func S(info string, from int, to int) Segment {
+	return Segment{info, MakeToken(Marker(from), Marker(to))}
 }
 
 func N(info string, from int, to int, nodes ...*Node) *Node {
-	return &Node{V(info, from, to), nodes}
+	return &Node{S(info, from, to), nodes}
 }
 
 func TestGraphAppend(t *testing.T) {
 	cases := []struct {
 		base *Graph
-		v    Value
+		s    Segment
 		g    *Graph
 		ok   bool
 	}{
-		{NewGraph("root"), V("val", 10, 15), &Graph{N("root", 10, 15, N("val", 10, 15))}, true},
+		{NewGraph("root"), S("val", 10, 15), &Graph{N("root", 10, 15, N("val", 10, 15))}, true},
 		{
-			&Graph{N("root", 10, 15, N("key", 10, 15))}, V("val", 17, 25),
+			&Graph{N("root", 10, 15, N("key", 10, 15))}, S("val", 17, 25),
 			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, true,
 		},
 		{
-			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, V("obj", 8, 28),
+			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, S("obj", 8, 28),
 			&Graph{N("root", 8, 28, N("obj", 8, 28, N("key", 10, 15), N("val", 17, 25)))}, true,
 		},
 		{ // clash
-			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, V("obj", 8, 20),
+			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, S("obj", 8, 20),
 			&Graph{N("root", 10, 25, N("key", 10, 15), N("val", 17, 25))}, false,
 		},
 	}
 	for i, c := range cases {
-		g, ok := c.base.Append(c.v)
+		g, ok := c.base.Append(c.s)
 		if ok != c.ok {
 			t.Errorf("%d unexpected ok value: %v", i, ok)
 		}
@@ -47,11 +47,11 @@ func TestGraphAppend(t *testing.T) {
 func TestGraphLeafs(t *testing.T) {
 	cases := []struct {
 		g   *Graph
-		exp []Value
+		exp []Segment
 	}{
 		{
 			&Graph{N("root", 8, 28, N("obj", 8, 28, N("key", 10, 15), N("val", 17, 25)))},
-			[]Value{V("key", 10, 15), V("val", 17, 25)},
+			[]Segment{S("key", 10, 15), S("val", 17, 25)},
 		},
 	}
 	for i, c := range cases {
@@ -70,11 +70,11 @@ func TestGraphLeafs(t *testing.T) {
 
 func TestBuildGraph(t *testing.T) {
 	cases := []struct {
-		inp []Value
+		inp []Segment
 		exp *Graph
 	}{
 		{
-			[]Value{V("text", 0, 20), V("obj", 2, 18), V("id", 3, 8), V("val", 10, 16)},
+			[]Segment{S("text", 0, 20), S("obj", 2, 18), S("id", 3, 8), S("val", 10, 16)},
 			&Graph{N("root", 0, 20, N("text", 0, 20, N("obj", 2, 18, N("id", 3, 8), N("val", 10, 16))))},
 		},
 	}

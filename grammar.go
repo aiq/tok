@@ -82,9 +82,9 @@ func (r *RuleReader) Map(f MapFunc) {
 }
 
 // Pick collects the Tokens if a Reader was moven and sets the Info field.
-func (r *RuleReader) Pick(info string, values *[]Value) {
+func (r *RuleReader) Pick(info string, segments *[]Segment) {
 	r.Map(func(t Token) {
-		*values = append(*values, Value{
+		*segments = append(*segments, Segment{
 			Info:  info,
 			Token: t,
 		})

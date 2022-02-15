@@ -11,13 +11,13 @@ import (
 
 // Node
 type Node struct {
-	Value
+	Segment
 	Nodes []*Node
 }
 
 // Equal
 func (n *Node) Equal(oth *Node) bool {
-	if n.Value != oth.Value {
+	if n.Segment != oth.Segment {
 		return false
 	}
 	if len(n.Nodes) != len(oth.Nodes) {
@@ -81,15 +81,15 @@ func rankNodes(a *Node, b *Node) bool {
 	return true
 }
 
-// Append appends a Values to a graph.
-func (g *Graph) Append(v Value) (*Graph, bool) {
-	n := &Node{Value: v}
+// Append appends a Segment to a graph.
+func (g *Graph) Append(seg Segment) (*Graph, bool) {
+	n := &Node{Segment: seg}
 	bkp := g.Root.Token
 	if !g.Root.Covers(n.Token) {
 		if len(g.Root.Nodes) > 0 {
-			g.Root.Token = g.Root.Token.Merge(n.Value.Token)
+			g.Root.Token = g.Root.Token.Merge(n.Segment.Token)
 		} else {
-			g.Root.Token = n.Value.Token
+			g.Root.Token = n.Segment.Token
 		}
 	}
 	ok := rankNodes(g.Root, n)
@@ -122,9 +122,9 @@ func (g *Graph) FlameStack() string {
 	return b.String()
 }
 
-func (n *Node) appendLeafs(leafs *[]Value) {
+func (n *Node) appendLeafs(leafs *[]Segment) {
 	if len(n.Nodes) == 0 {
-		*leafs = append(*leafs, n.Value)
+		*leafs = append(*leafs, n.Segment)
 	} else {
 		for _, sub := range n.Nodes {
 			sub.appendLeafs(leafs)
@@ -133,17 +133,17 @@ func (n *Node) appendLeafs(leafs *[]Value) {
 }
 
 // Leafs returns the values of a graph that hang on the leafs.
-func (g *Graph) Leafs() []Value {
-	leafs := []Value{}
+func (g *Graph) Leafs() []Segment {
+	leafs := []Segment{}
 	g.Root.appendLeafs(&leafs)
 	return leafs
 }
 
-// BuildGraph creates a graph with the values.
+// BuildGraph creates a graph with the segments.
 // The name argument will be used as the info of the root node.
-func BuildGraph(name string, values []Value) *Graph {
+func BuildGraph(name string, segments []Segment) *Graph {
 	g := NewGraph(name)
-	for _, v := range values {
+	for _, v := range segments {
 		g.Append(v)
 	}
 	return g
@@ -152,6 +152,6 @@ func BuildGraph(name string, values []Value) *Graph {
 // NewGraph creates an empty graph with name as the info of the root node.
 func NewGraph(name string) *Graph {
 	g := &Graph{&Node{}}
-	g.Root.Value.Info = name
+	g.Root.Segment.Info = name
 	return g
 }

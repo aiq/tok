@@ -2,18 +2,18 @@ package tok
 
 import "testing"
 
-func TestSortValues(t *testing.T) {
+func TestSortSegments(t *testing.T) {
 	cases := []struct {
-		inp []Value
-		exp []Value
+		inp []Segment
+		exp []Segment
 	}{
 		{
-			[]Value{V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8), V("text", 0, 20)},
-			[]Value{V("text", 0, 20), V("obj", 2, 18), V("id", 3, 8), V("val", 10, 16)},
+			[]Segment{S("obj", 2, 18), S("val", 10, 16), S("id", 3, 8), S("text", 0, 20)},
+			[]Segment{S("text", 0, 20), S("obj", 2, 18), S("id", 3, 8), S("val", 10, 16)},
 		},
 	}
 	for i, c := range cases {
-		SortValues(c.inp)
+		SortSegments(c.inp)
 		for j, v := range c.inp {
 			if v != c.exp[j] {
 				t.Errorf("%d unexpected values at %d: %v != %v", i, j, v, c.exp[j])
@@ -22,20 +22,20 @@ func TestSortValues(t *testing.T) {
 	}
 }
 
-func TestSortValuesByOrder(t *testing.T) {
+func TestSortSegmentsByOrder(t *testing.T) {
 	cases := []struct {
-		inp   []Value
+		inp   []Segment
 		order []string
-		exp   []Value
+		exp   []Segment
 	}{
 		{
-			[]Value{V("obj", 2, 18), V("val", 10, 16), V("id", 3, 8), V("text", 0, 20), V("member", 2, 18)},
+			[]Segment{S("obj", 2, 18), S("val", 10, 16), S("id", 3, 8), S("text", 0, 20), S("member", 2, 18)},
 			[]string{"member", "obj"},
-			[]Value{V("text", 0, 20), V("member", 2, 18), V("obj", 2, 18), V("id", 3, 8), V("val", 10, 16)},
+			[]Segment{S("text", 0, 20), S("member", 2, 18), S("obj", 2, 18), S("id", 3, 8), S("val", 10, 16)},
 		},
 	}
 	for i, c := range cases {
-		SortValuesByOrder(c.inp, c.order)
+		SortSegmentsByOrder(c.inp, c.order)
 		for j, v := range c.inp {
 			if v != c.exp[j] {
 				t.Errorf("%d unexpected values at %d: %v != %v", i, j, v, c.exp[j])
@@ -46,20 +46,20 @@ func TestSortValuesByOrder(t *testing.T) {
 
 func TestSegmentate(t *testing.T) {
 	cases := []struct {
-		str    string
-		values []Value
-		exp    []Segment
+		str      string
+		segments []Segment
+		exp      []Segment
 	}{
 		{
-			"abcdefgh", []Value{V("v", 0, 1), V("v", 2, 4), V("v", 7, 8)}, []Segment{
-				{V("v", 0, 1), "a"}, {V("", 1, 2), "b"}, {V("v", 2, 4), "cd"},
-				{V("", 4, 7), "efg"}, {V("v", 7, 8), "h"},
+			"abcdefgh", []Segment{S("v", 0, 1), S("v", 2, 4), S("v", 7, 8)}, []Segment{
+				S("v", 0, 1), S("", 1, 2), S("v", 2, 4),
+				S("", 4, 7), S("v", 7, 8),
 			},
 		},
 	}
 	for i, c := range cases {
 		sca := NewScanner(c.str)
-		res, err := sca.Segmentate(c.values)
+		res, err := sca.Segmentate(c.segments)
 		if err != nil {
 			t.Error(unexpError(i, err))
 		}

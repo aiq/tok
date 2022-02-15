@@ -6,58 +6,63 @@ import (
 )
 
 //------------------------------------------------------------------------------
-// Value is a Token with additional Meta-Information that can be stored in Info.
-type Value struct {
+// Segment is a Token with additional Meta-Information that can be stored in Info.
+type Segment struct {
 	Info string
 	Token
 }
 
-// Split splits a Value into two parts via sep.
-func (v Value) Split(sep Value) (Value, Value) {
-	l, r := v.Token.Split(sep.Token)
-	return Value{v.Info, l}, Value{v.Info, r}
+// Known reports if information about this segment exist.
+func (seg Segment) Known() bool {
+	return seg.Info != ""
 }
 
-// String returns a readable representation of a Value.
-func (v Value) String() string {
+// Split splits a Segment into two parts via sep.
+func (v Segment) Split(sep Segment) (Segment, Segment) {
+	l, r := v.Token.Split(sep.Token)
+	return Segment{v.Info, l}, Segment{v.Info, r}
+}
+
+// String returns a readable representation of a Segment.
+func (v Segment) String() string {
 	return v.Info + v.Token.String()
 }
 
-type valueSorter struct {
-	values  []Value
-	cmpFunc func(Value, Value) bool
+type segSorter struct {
+	values  []Segment
+	cmpFunc func(Segment, Segment) bool
 }
 
-func (s *valueSorter) Len() int {
+func (s *segSorter) Len() int {
 	return len(s.values)
 }
 
-func (s *valueSorter) Less(i, j int) bool {
+func (s *segSorter) Less(i, j int) bool {
 	return s.cmpFunc(s.values[i], s.values[j])
 }
 
-func (s *valueSorter) Swap(i, j int) {
+func (s *segSorter) Swap(i, j int) {
 	s.values[i], s.values[j] = s.values[j], s.values[i]
 }
 
-// SortValues sorts the values in a slice.
-// Values that cover other values will appear before the covered values.
-func SortValues(values []Value) {
-	sorter := &valueSorter{
+// SortSegments sorts the segments in a slice.
+// Segments that cover other segments will appear before the covered values.
+func SortSegments(values []Segment) {
+	sorter := &segSorter{
 		values: values,
-		cmpFunc: func(a, b Value) bool {
+		cmpFunc: func(a, b Segment) bool {
 			return a.Covers(b.Token) || a.Before(b.Token)
 		},
 	}
 	sort.Stable(sorter)
 }
 
-// SortValuesByOrder sorts like SortValues with an order as additional tiebreaker.
-// The appearence of an information in the order slice determines the order for values with equal tokens.
-func SortValuesByOrder(values []Value, order []string) {
-	sorter := &valueSorter{
+// SortSegmentsByOrder sorts like SortSegments with an order as additional tiebreaker.
+// The appearence of an information in the order slice determines the order for segments with equal tokens.
+func SortSegmentsByOrder(values []Segment, order []string) {
+	sorter := &segSorter{
 		values: values,
-		cmpFunc: func(a, b Value) bool {
+		cmpFunc: func(a, b Segment) bool {
 			if a.Token != b.Token {
 				return a.Covers(b.Token) || a.Before(b.Token)
 			}
@@ -80,39 +85,29 @@ func SortValuesByOrder(values []Value, order []string) {
 
 //------------------------------------------------------------------------------
 
-// Segment groups a Token with the sub string from a Scanner.
-type Segment struct {
-	Value
-	Sub string
-}
-
-// Known reports if information about this segment exist.
-func (seg Segment) Known() bool {
-	return seg.Info != ""
-}
-
-// String returns a readable representation of a Segment.
-func (seg Segment) String() string {
-	return fmt.Sprintf("%s%q", seg.Value, seg.Sub)
+// Segmentate splits a segment into subsegments.
+func (s Segment) Segmentate(segments []Segment) ([]Segment, error) {
+	res := []Segment{}
+	left := Segment{}
+	rest := s
+	for _, seg := range segments {
+		if !rest.Covers(seg.Token) {
+			return res, fmt.Errorf("invalid token %s", seg.String())
+		}
+		left, rest = rest.Split(seg)
+		if left.Len() > 0 {
+			res = append(res, left)
+		}
+		res = append(res, seg)
+	}
+	if rest.Len() > 0 {
+		res = append(res, rest)
+	}
+	return res, nil
 }
 
 // Segmentate splits the full string of a Scanner into segments.
-func (s *Scanner) Segmentate(values []Value) ([]Segment, error) {
-	res := []Segment{}
-	left := Value{}
-	rest := Value{"", MakeToken(0, Marker(len(s.full)))}
-	for _, v := range values {
-		if !rest.Covers(v.Token) {
-			return res, fmt.Errorf("invalid token %s", v.String())
-		}
-		left, rest = rest.Split(v)
-		if left.Len() > 0 {
-			res = append(res, Segment{left, s.Get(left.Token)})
-		}
-		res = append(res, Segment{v, s.Get(v.Token)})
-	}
-	if rest.Len() > 0 {
-		res = append(res, Segment{rest, s.Get(rest.Token)})
-	}
-	return res, nil
+func (s *Scanner) Segmentate(segments []Segment) ([]Segment, error) {
+	rest := Segment{"", MakeToken(0, Marker(len(s.full)))}
+	return rest.Segmentate(segments)
 }
