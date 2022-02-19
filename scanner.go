@@ -209,6 +209,9 @@ func inRange(min, val, max rune) bool {
 // Moves s one rune forward if the first rune in Tail() is >= min and <= max.
 // Returns true if s was moved, otherwise false.
 func (s *Scanner) IfBetween(min, max rune) bool {
+	if len(s.Tail()) == 0 {
+		return false
+	}
 	val, i := utf8.DecodeRuneInString(s.Tail())
 	if !inRange(min, val, max) {
 		return false
@@ -219,6 +222,10 @@ func (s *Scanner) IfBetween(min, max rune) bool {
 // Moves s to the first rune in Tail() that is >= min and <= max.
 // Returns true if a match was found, otherwise false.
 func (s *Scanner) ToBetween(min, max rune) bool {
+	if len(s.Tail()) == 0 {
+		return false
+	}
+
 	for i, v := range s.Tail() {
 		if inRange(min, v, max) {
 			return s.Move(i)
@@ -309,13 +316,37 @@ func (s *Scanner) LineCol(tab int) (int, int) {
 	return len(lines), n + 1
 }
 
-// A positive diff value moves s to the right, a negative value moves s to the left.
-func (s *Scanner) Move(diff int) bool {
-	npos := s.pos + diff
+// A positive value moves s n bytes to the right, a negative value moves s n bytes to the left.
+func (s *Scanner) Move(n int) bool {
+	npos := s.pos + n
 	if 0 > npos || npos > len(s.full) {
 		return false
 	}
 	s.pos = npos
+	return true
+}
+
+// A positve value moves s n runes to the right, a negative value moves s n runes to the left.
+func (s *Scanner) MoveRunes(n int) bool {
+	c := 0
+	if n > 0 {
+		for i, r := range s.Tail() {
+			c++
+			if n == c {
+				return s.Move(i + utf8.RuneLen(r))
+			}
+		}
+		return false
+	} else if n < 0 {
+		itr := makeRevItr(s.Head())
+		for itr.next() {
+			c--
+			if n == c {
+				return s.Move(-(itr.pos() + utf8.RuneLen(itr.Val)))
+			}
+		}
+		return false
+	}
 	return true
 }
 
