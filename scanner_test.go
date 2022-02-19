@@ -354,3 +354,22 @@ func TestLineCol(t *testing.T) {
 		}
 	}
 }
+
+func TestMoveRunes(t *testing.T) {
+	checkTrueMove := func(s *Scanner, n int, head, tail string) {
+		if !s.MoveRunes(n) {
+			t.Errorf("not able to move %d", n)
+		}
+		if s.Head() != head {
+			t.Errorf("unexpected head value: %q != %q", s.Head(), head)
+		}
+		if s.Tail() != tail {
+			t.Errorf("unexpected tail value: %q != %q", s.Tail(), tail)
+		}
+	}
+	sca := NewScanner("a@ä!")
+	checkTrueMove(sca, 3, "a@ä", "!")
+	checkTrueMove(sca, 1, "a@ä!", "")
+	checkTrueMove(sca, -2, "a@", "ä!")
+	checkTrueMove(sca, -2, "", "a@ä!")
+}

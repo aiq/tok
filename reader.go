@@ -552,6 +552,8 @@ func (r *notReader) What() string {
 func Not(r Reader) Reader {
 	return &notReader{r}
 }
+
+//------------------------------------------------------------------------------
 type optReader struct {
 	sub Reader
 }
@@ -675,7 +677,7 @@ type toReader struct {
 
 func (r *toReader) Read(s *Scanner) error {
 	m := s.Mark()
-	for ; !s.AtEnd(); s.Move(1) {
+	for ok := true; ok; ok = s.MoveRunes(1) {
 		subM := s.Mark()
 		if e := r.sub.Read(s); e == nil {
 			s.ToMarker(subM)
