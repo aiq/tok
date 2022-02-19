@@ -240,6 +240,71 @@ func BuildBetweenAny(minMax ...rune) Reader {
 }
 
 //------------------------------------------------------------------------------
+type bodyReader struct {
+	body Reader
+	tail Reader
+}
+
+func (r *bodyReader) Read(s *Scanner) error {
+	m := s.Mark()
+	for ; !s.AtEnd(); s.MoveRunes(1) {
+		t := s.Mark()
+		if e := r.tail.Read(s); e == nil {
+			sub := NewScanner(s.Get(MakeToken(m, t)))
+			e = sub.Use(r.body)
+			if e != nil || !sub.AtEnd() {
+				break
+			}
+			s.ToMarker(t)
+			return nil
+		}
+	}
+	s.ToMarker(m)
+	return s.ErrorFor(r.What())
+}
+
+func (r *bodyReader) What() string {
+	return "-(" + r.body.What() + ")-" + r.tail.What() + "-"
+}
+
+// Body creates a Reader that ends before something that matches tail and all runes inbetween can be read with body.
+func Body(body, tail Reader) Reader {
+	return &bodyTailReader{body, tail}
+}
+
+//------------------------------------------------------------------------------
+type bodyTailReader struct {
+	body Reader
+	tail Reader
+}
+
+func (r *bodyTailReader) Read(s *Scanner) error {
+	m := s.Mark()
+	for ; !s.AtEnd(); s.MoveRunes(1) {
+		t := s.Mark()
+		if e := r.tail.Read(s); e == nil {
+			sub := NewScanner(s.Get(MakeToken(m, t)))
+			e = sub.Use(r.body)
+			if e != nil || !sub.AtEnd() {
+				break
+			}
+			return nil
+		}
+	}
+	s.ToMarker(m)
+	return s.ErrorFor(r.What())
+}
+
+func (r *bodyTailReader) What() string {
+	return "-(" + r.body.What() + ")--" + r.tail.What() + "-"
+}
+
+// BodyTail creates a Reader that ends with something that matches tail and all runes inbetween can be read with body.
+func BodyTail(body, tail Reader) Reader {
+	return &bodyTailReader{body, tail}
+}
+
+//------------------------------------------------------------------------------
 // BoolReader is a Reader that stores the readed bool value in the field Value.
 type BoolReader struct {
 	Value  bool
@@ -273,6 +338,22 @@ func Bool(format string) *BoolReader {
 // Digit creates a Reader that reads the digit runes '0'-'9'
 func Digit() Reader {
 	return Between('0', '9')
+}
+
+//------------------------------------------------------------------------------
+type endReader struct {
+}
+
+func (r endReader) Read(s *Scanner) error {
+	return s.BoolErrorFor(s.AtEnd(), r.What())
+}
+
+func (r endReader) What() string {
+	return "END"
+}
+
+func End() Reader {
+	return endReader{}
 }
 
 //------------------------------------------------------------------------------
@@ -367,7 +448,7 @@ func (r *janusBeginReader) Read(s *Scanner) error {
 }
 
 func (r *janusBeginReader) What() string {
-	return "!" + r.name + "<" + r.reader.What()
+	return "$" + r.name + "<" + r.reader.What()
 }
 
 type janusEndReader struct {
@@ -579,7 +660,7 @@ type pastReader struct {
 
 func (r *pastReader) Read(s *Scanner) error {
 	m := s.Mark()
-	for ; !s.AtEnd(); s.Move(1) {
+	for ; !s.AtEnd(); s.MoveRunes(1) {
 		if e := r.sub.Read(s); e == nil {
 			return nil
 		}
@@ -638,7 +719,7 @@ func (r *seqReader) What() string {
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
 	}
-	return "> " + strings.Join(sub, " ") + " >"
+	return "> " + strings.Join(sub, " ") + " >|"
 }
 
 // Seq creates a Reader that tries to Read with all readers in list sequential.
