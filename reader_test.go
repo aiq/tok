@@ -45,7 +45,8 @@ func TestReaderWhat(t *testing.T) {
 		{BetweenAny("a-zA-Z"), `[< az AZ >]`},
 		{Fold("true"), `~"true"`},
 		{Holey('a', 'z', "ox"), `(<az> - "ox")`},
-		{Seq(Rune('!'), Many(AnyRune(" +-")), Lit("abc")), `> '!' +[" +-"] "abc" >`},
+		{Not(Rune('A')), `!'A'`},
+		{Seq(Rune('!'), Many(AnyRune(" +-")), Lit("abc")), `> '!' +[" +-"] "abc" >|`},
 		{To(Bool("")), `->bool{""}`},
 		{Uint(16, 64), `uint{16,64}`},
 		{WS(), `[" \r\n\t"]`},
@@ -59,24 +60,44 @@ func TestReaderWhat(t *testing.T) {
 }
 
 func TestJanus(t *testing.T) {
-	check := func(str, expStr string, e, expE error) {
+	check := func(str, expStr string, e error, expE bool) {
 		if str != expStr {
 			t.Errorf("unexpected string: %q != %q", str, expStr)
 		}
-		if e != expE {
+		if (expE && e == nil) && (!expE && e != nil) {
 			t.Errorf("unexpected error value: %v", e)
 		}
 	}
 	beg, end := Janus("i", Many(Between('a', 'z')))
 	str, err := NewScanner("two two").CaptureUse(Seq(beg, WS(), end))
-	check(str, "two two", err, nil)
+	check(str, "two two", err, false)
 
 	beg, end = Janus("c", Many(Rune('=')))
 	comBeg := Seq(Rune('['), beg, Rune('['))
 	comEnd := Seq(Rune(']'), end, Rune(']'))
 	str, err = NewScanner("[==[long lua string]==] ~=").CaptureUse(Seq(comBeg, To(comEnd)))
-	check(str, "[==[long lua string", err, nil)
+	check(str, "[==[long lua string", err, false)
 
 	str, err = NewScanner("[==[long lua string]==] ~=").CaptureUse(Seq(comBeg, Past(comEnd)))
-	check(str, "[==[long lua string]==]", err, nil)
+	check(str, "[==[long lua string]==]", err, false)
+}
+
+func TestNot(t *testing.T) {
+	check := func(str, expStr string, e error, expE bool) {
+		if str != expStr {
+			t.Errorf("unexpected string: %q != %q", str, expStr)
+		}
+		if (expE && e == nil) && (!expE && e != nil) {
+			t.Errorf("unexpected error value: %v", e)
+		}
+	}
+	notA := Not(AnyRune("aA"))
+	str, err := NewScanner("XYZAa").CaptureUse(notA)
+	check(str, "X", err, false)
+
+	str, err = NewScanner("aAbB").CaptureUse(notA)
+	check(str, "", err, true)
+
+	str, err = NewScanner("XYZAa").CaptureUse(Many(notA))
+	check(str, "XYZ", err, false)
 }
