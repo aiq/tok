@@ -523,6 +523,35 @@ func Named(name string, r Reader) Reader {
 }
 
 //------------------------------------------------------------------------------
+// NL creates a Reader to read new lines.
+func NL() Reader {
+	return AnyLit("\n", "\r\n")
+}
+
+//------------------------------------------------------------------------------
+type notReader struct {
+	sub Reader
+}
+
+func (r *notReader) Read(s *Scanner) error {
+	m := s.Mark()
+	err := r.sub.Read(s)
+	s.ToMarker(m)
+	if err == nil {
+		return s.ErrorFor(r.sub.What())
+	}
+	s.MoveRunes(1)
+	return nil
+}
+
+func (r *notReader) What() string {
+	return "!" + r.sub.What()
+}
+
+// Not creates a Reader that moves 1 Rune forward if r does not match.
+func Not(r Reader) Reader {
+	return &notReader{r}
+}
 type optReader struct {
 	sub Reader
 }
