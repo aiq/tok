@@ -457,11 +457,15 @@ type janusEndReader struct {
 }
 
 func (r *janusEndReader) Read(s *Scanner) error {
-	return r.reader.Read(s)
+	err := r.reader.Read(s)
+	if err == nil {
+		r.reader.str = ""
+	}
+	return err
 }
 
 func (r *janusEndReader) What() string {
-	return "!" + r.name + ">"
+	return "$" + r.name
 }
 
 // Janus creates two Reader.
