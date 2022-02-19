@@ -51,5 +51,8 @@ func TestJSON(t *testing.T) {
 		if err != nil {
 			t.Errorf("%d unexpected error: %v", i, err)
 		}
+		if !sca.AtEnd() {
+			t.Errorf("did not read the whole json")
+		}
 	}
 }
