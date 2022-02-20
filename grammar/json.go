@@ -35,7 +35,7 @@ type JSONReader struct {
 }
 
 // JSON creates a Grammar to Read a JSON file.
-// The implementation is based on https://www.crockford.com/mckeeman.html.
+// The implementation is based on https://www.crockford.com/mckeeman.html
 func JSON() *JSONReader {
 	g := &JSONReader{}
 	SetRuleNames(g)

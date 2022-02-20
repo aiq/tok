@@ -25,7 +25,7 @@ type MXTReader struct {
 }
 
 // MXT creates a Grammar to Read a MXT file.
-// The implementation is based on https://mxt.aiq.dk/.
+// The implementation is based on https://mxt.aiq.dk/
 func MXT() *MXTReader {
 	g := &MXTReader{}
 	SetRuleNames(g)
