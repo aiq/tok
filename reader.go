@@ -164,6 +164,25 @@ func (r *atReader) What() string {
 func At(r Reader) Reader {
 	return &atReader{r}
 }
+
+//------------------------------------------------------------------------------
+type atEndReader struct {
+}
+
+func (r atEndReader) Read(s *Scanner) error {
+	return s.BoolErrorFor(s.AtEnd(), r.What())
+}
+
+func (r atEndReader) What() string {
+	return "@END"
+}
+
+// At creates a Reader that checks the scanner reaches the end.
+func AtEnd() Reader {
+	return atEndReader{}
+}
+
+//------------------------------------------------------------------------------
 type betweenReader struct {
 	min rune
 	max rune
@@ -284,7 +303,7 @@ func (r *bodyReader) Read(s *Scanner) error {
 }
 
 func (r *bodyReader) What() string {
-	return "-(" + r.body.What() + ")-" + r.tail.What() + "-"
+	return "-(" + r.body.What() + "-" + r.tail.What() + ")-"
 }
 
 // Body creates a Reader that ends before something that matches tail and all runes inbetween can be read with body.
@@ -316,7 +335,7 @@ func (r *bodyTailReader) Read(s *Scanner) error {
 }
 
 func (r *bodyTailReader) What() string {
-	return "-(" + r.body.What() + ")--" + r.tail.What() + "-"
+	return "-(" + r.body.What() + "-+" + r.tail.What() + ")-"
 }
 
 // BodyTail creates a Reader that ends with something that matches tail and all runes inbetween can be read with body.
@@ -358,22 +377,6 @@ func Bool(format string) *BoolReader {
 // Digit creates a Reader that reads the digit runes '0'-'9'
 func Digit() Reader {
 	return Between('0', '9')
-}
-
-//------------------------------------------------------------------------------
-type endReader struct {
-}
-
-func (r endReader) Read(s *Scanner) error {
-	return s.BoolErrorFor(s.AtEnd(), r.What())
-}
-
-func (r endReader) What() string {
-	return "END"
-}
-
-func End() Reader {
-	return endReader{}
 }
 
 //------------------------------------------------------------------------------

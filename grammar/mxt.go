@@ -8,18 +8,20 @@ import (
 )
 
 type MXTReader struct {
-	Chunks   RuleReader `name:"chunks"`
-	Chunk    RuleReader `name:"chunk"`
-	Header   RuleReader `name:"header"`
-	Marker   RuleReader `name:"marker"`
-	Name     RuleReader `name:"name"`
-	Comment  RuleReader `name:"comment"`
-	Arrow    RuleReader `name:"arrow"`
-	Salt     RuleReader `name:"salt"`
-	Content  RuleReader `name:"content"`
-	Word     RuleReader `name:"word"`
-	WordChar RuleReader `name:"wordchar"`
-	NL       RuleReader `name:"nl"`
+	Chunks       RuleReader `name:"chunks"`
+	Chunk        RuleReader `name:"chunk"`
+	Header       RuleReader `name:"header"`
+	Marker       RuleReader `name:"marker"`
+	NextMarker   RuleReader `name:"next-marker"`
+	Name         RuleReader `name:"name"`
+	Comment      RuleReader `name:"comment"`
+	Arrow        RuleReader `name:"arrow"`
+	Salt         RuleReader `name:"salt"`
+	EmptyContent RuleReader `name:"empty-content"`
+	Content      RuleReader `name:"content"`
+	Word         RuleReader `name:"word"`
+	WordChar     RuleReader `name:"wordchar"`
+	NL           RuleReader `name:"nl"`
 }
 
 // MXT creates a Grammar to Read a MXT file.
@@ -38,8 +40,10 @@ func MXT() *MXTReader {
 	saltHead, saltTail := Janus("", Opt(&g.Word))
 	g.Salt.Reader = Seq(Many(Rune(' ')), saltHead, Zom(Rune(' ')))
 	g.Header.Reader = Seq(&g.Marker, Many(Rune(' ')), &g.Name, &g.Comment, &g.Arrow, Opt(&g.Salt))
-	g.Content.Reader = To(Any(Seq(&g.NL, Lit("//"), saltTail), End()))
-	g.Chunk.Reader = Seq(&g.Header, Any(Seq(&g.Content), End()))
+	g.NextMarker.Reader = Seq(&g.NL, Lit("//"), saltTail)
+	g.EmptyContent.Reader = Any(AtEnd(), At(&g.NextMarker))
+	g.Content.Reader = To(Any(&g.NextMarker, AtEnd()))
+	g.Chunk.Reader = Seq(&g.Header, Any(&g.EmptyContent, Seq(&g.NL, &g.Content)))
 	g.Chunks.Reader = Seq(&g.Chunk, Zom(Seq(&g.NL, &g.Chunk)))
 	return g
 }
