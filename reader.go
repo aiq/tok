@@ -7,6 +7,20 @@ import (
 	"unicode/utf8"
 )
 
+func asReader(i interface{}) (Reader, bool) {
+	if r, ok := i.(rune); ok {
+		return Rune(r), true
+	} else if str, ok := i.(string); ok {
+		return Lit(str), true
+	} else if r, ok := i.(Reader); ok {
+		return r, true
+	} else {
+		return nil, false
+	}
+}
+
+//---------------
+
 // ReadFunc represents the prototype of a read function.
 type ReadFunc func(*Scanner) error
 
@@ -101,9 +115,18 @@ func (r *anyReader) What() string {
 }
 
 // Any creates a Reader that tries to Read with any of the given Reader.
+// The type of the list values can be rune, string or Reader.
 // The first Reader that reads without an error will be used.
-func Any(list ...Reader) Reader {
-	return &anyReader{list}
+func Any(list ...interface{}) Reader {
+	readers := []Reader{}
+	for i, ai := range list {
+		r, ok := asReader(ai)
+		if !ok {
+			return InvalidReader("invalid Any parameter at %d: unknown type %T", i+1, ai)
+		}
+		readers = append(readers, r)
+	}
+	return &anyReader{readers}
 }
 
 // AnyFold creates a Reader that tries to Read any of the strings in list.
@@ -112,15 +135,6 @@ func AnyFold(list ...string) Reader {
 	readers := []Reader{}
 	for _, s := range list {
 		readers = append(readers, Fold(s))
-	}
-	return &anyReader{readers}
-}
-
-// AnyLit creates a Reader that tries to Read any of the strings in list.
-func AnyLit(list ...string) Reader {
-	readers := []Reader{}
-	for _, s := range list {
-		readers = append(readers, Lit(s))
 	}
 	return &anyReader{readers}
 }
@@ -308,7 +322,7 @@ func (r *bodyReader) What() string {
 
 // Body creates a Reader that ends before something that matches tail and all runes inbetween can be read with body.
 func Body(body, tail Reader) Reader {
-	return &bodyTailReader{body, tail}
+	return &bodyReader{body, tail}
 }
 
 //------------------------------------------------------------------------------
@@ -561,9 +575,14 @@ func (r manyReader) What() string {
 	return "+" + r.sub.What()
 }
 
-// Many creates a Reader that expects that r matches one or more times.
+// Many creates a Reader that expects that i matches one or more times.
+// The type of i can be rune, string or Reader.
 // See Zom for a Reader that expects zero or more.
-func Many(r Reader) Reader {
+func Many(i interface{}) Reader {
+	r, ok := asReader(i)
+	if !ok {
+		return InvalidReader("invalid Many parameter: unknown type %T", i)
+	}
 	return &manyReader{r}
 }
 
@@ -633,7 +652,7 @@ func Named(name string, r Reader) Reader {
 //------------------------------------------------------------------------------
 // NL creates a Reader to read new lines.
 func NL() Reader {
-	return AnyLit("\n", "\r\n")
+	return Any("\n", "\r\n")
 }
 
 //------------------------------------------------------------------------------
@@ -675,8 +694,13 @@ func (r *optReader) What() string {
 	return "?" + r.sub.What()
 }
 
-// Opt creates Reader that catches the error that r can produce and returns allways nil
-func Opt(r Reader) Reader {
+// Opt creates Reader that catches the error that i can produce and returns allways nil.
+// The type of i can be rune, string or Reader.
+func Opt(i interface{}) Reader {
+	r, ok := asReader(i)
+	if !ok {
+		return InvalidReader("invalid Opt parameter: unknown type %T", i)
+	}
 	return &optReader{r}
 }
 
@@ -750,8 +774,17 @@ func (r *seqReader) What() string {
 }
 
 // Seq creates a Reader that tries to Read with all readers in list sequential.
-func Seq(list ...Reader) Reader {
-	return &seqReader{list}
+// The type of the list values can be rune, string or Reader.
+func Seq(list ...interface{}) Reader {
+	readers := []Reader{}
+	for i, ai := range list {
+		r, ok := asReader(ai)
+		if !ok {
+			return InvalidReader("invalid Seq parameter at %d: unknown type %T", i+1, ai)
+		}
+		readers = append(readers, r)
+	}
+	return &seqReader{readers}
 }
 
 //------------------------------------------------------------------------------
@@ -873,8 +906,13 @@ func (r zomReader) What() string {
 	return "*" + r.sub.What()
 }
 
-// Zom creates a Reader that expects that r matches zero or more times.
+// Zom creates a Reader that expects that i matches zero or more times.
+// The type of i can be rune, string or Reader.
 // See Many for a Reader that expects one or more.
-func Zom(r Reader) Reader {
+func Zom(i interface{}) Reader {
+	r, ok := asReader(i)
+	if !ok {
+		return InvalidReader("invalid Zom parameter: unknown type %T", i)
+	}
 	return &zomReader{r}
 }

@@ -38,9 +38,9 @@ func MXT() *MXTReader {
 	g.Comment.Reader = To(Named("arrow", arrow))
 	g.Arrow.Reader = arrow
 	saltHead, saltTail := Janus("", Opt(&g.Word))
-	g.Salt.Reader = Seq(Many(Rune(' ')), saltHead, Zom(Rune(' ')))
-	g.Header.Reader = Seq(&g.Marker, Many(Rune(' ')), &g.Name, &g.Comment, &g.Arrow, Opt(&g.Salt))
-	g.NextMarker.Reader = Seq(&g.NL, Lit("//"), saltTail)
+	g.Salt.Reader = Seq(Many(' '), saltHead, Zom(' '))
+	g.Header.Reader = Seq(&g.Marker, Many(' '), &g.Name, &g.Comment, &g.Arrow, Opt(&g.Salt))
+	g.NextMarker.Reader = Seq(&g.NL, "//", saltTail)
 	g.EmptyContent.Reader = Any(AtEnd(), At(&g.NextMarker))
 	g.Content.Reader = To(Any(&g.NextMarker, AtEnd()))
 	g.Chunk.Reader = Seq(&g.Header, Any(&g.EmptyContent, Seq(&g.NL, &g.Content)))
