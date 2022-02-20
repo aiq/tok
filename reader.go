@@ -144,6 +144,26 @@ func AnyRune(str string) Reader {
 }
 
 //------------------------------------------------------------------------------
+type atReader struct {
+	sub Reader
+}
+
+func (r *atReader) Read(s *Scanner) error {
+	m := s.Mark()
+	err := r.sub.Read(s)
+	s.ToMarker(m)
+	return err
+}
+
+func (r *atReader) What() string {
+	return "@" + r.sub.What()
+}
+
+// At creates a Reader that checks the current postion of the scanner.
+// The Reader does not move the scanner.
+func At(r Reader) Reader {
+	return &atReader{r}
+}
 type betweenReader struct {
 	min rune
 	max rune
