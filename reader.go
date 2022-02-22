@@ -790,7 +790,7 @@ func (r *seqReader) What() string {
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
 	}
-	return "> " + strings.Join(sub, " ") + " >|"
+	return strings.Join(sub, "_")
 }
 
 // Seq creates a Reader that tries to Read with all readers in list sequential.
