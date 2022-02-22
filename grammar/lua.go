@@ -32,6 +32,17 @@ type LuaReader struct {
 	RetStat          RuleReader `name:"retstat"`
 	Attrib           RuleReader `name:"attrib"`
 	AttNameList      RuleReader `name:"attnamelist"`
+	Break            RuleReader `name:"breal"`
+	GoTo             RuleReader `name:"goto"`
+	Do               RuleReader `name:"do"`
+	While            RuleReader `name:"while"`
+	Repeat           RuleReader `name:"repeat"`
+	IfElse           RuleReader `name:"ifelse"`
+	For              RuleReader `name:"for"`
+	ForEach          RuleReader `name:"foreach"`
+	Func             RuleReader `name:"func"`
+	LocalFunc        RuleReader `name:"localfunc"`
+	LocalAtt         RuleReader `name:"localatt"`
 	Stat             RuleReader `name:"stat"`
 	Block            RuleReader `name:"block"`
 	Chunk            RuleReader `name:"chunk"`
@@ -89,26 +100,38 @@ func Lua() *LuaReader {
 	g.RetStat.Reader = Seq(Lit("return"), Opt(&g.ExpList), Opt(';'))
 	g.Attrib.Reader = Opt(Seq('<', &g.Name, '>'))
 	g.AttNameList.Reader = Seq(&g.Name, &g.Attrib, Zom(Seq(',', &g.Name, &g.Attrib)))
+	g.Break.Reader = Lit("break")
+	g.GoTo.Reader = Seq("goto", &g.Name)
+	g.Do.Reader = Seq("do", &g.Block, "end")
+	g.While.Reader = Seq("while", &g.Exp, "do", &g.Block, "end")
+	g.Repeat.Reader = Seq("repeat", &g.Block, "until", &g.Exp)
+	g.IfElse.Reader = Seq(
+		"if", &g.Exp, "then", &g.Block,
+		Zom(Seq("elseif", &g.Exp, "then", &g.Block)),
+		Opt(Seq("else", &g.Block)),
+		"end",
+	)
+	g.For.Reader = Seq("for", &g.Name, '=', &g.Exp, ',', &g.Exp, Opt(Seq(',', &g.Exp)), "do", &g.Block, "end")
+	g.ForEach.Reader = Seq("for", &g.NameList, "in", &g.ExpList, "do", &g.Block, "end")
+	g.Func.Reader = Seq("function", &g.FuncName, &g.FuncBody)
+	g.LocalFunc.Reader = Seq("local", "function", &g.Name, &g.FuncBody)
+	g.LocalAtt.Reader = Seq("local", &g.AttNameList, Opt(Seq('=', &g.ExpList)))
 	g.Stat.Reader = Any(
 		';',
 		Seq(&g.VarList, '=', &g.ExpList),
 		&g.FunctionCall,
 		&g.Label,
-		"break",
-		Seq("goto", &g.Name),
-		Seq("do", &g.Block, "end"),
-		Seq("while", &g.Exp, "do", &g.Block, "end"),
-		Seq("repeat", &g.Block, "until", &g.Exp),
-		Seq("if", &g.Exp, "then", &g.Block,
-			Zom(Seq("elseif", &g.Exp, "then", &g.Block)),
-			Opt(Seq("else", &g.Block)),
-			"end",
-		),
-		Seq("for", &g.Name, '=', &g.Exp, ',', &g.Exp, Opt(Seq(',', &g.Exp)), "do", &g.Block, "end"),
-		Seq("for", &g.NameList, "in", &g.ExpList, "do", &g.Block, "end"),
-		Seq("function", &g.FuncName, &g.FuncBody),
-		Seq("local", "function", &g.Name, &g.FuncBody),
-		Seq("local", &g.AttNameList, Opt(Seq('=', &g.ExpList))),
+		&g.Break,
+		&g.GoTo,
+		&g.Do,
+		&g.While,
+		&g.Repeat,
+		&g.IfElse,
+		&g.For,
+		&g.ForEach,
+		&g.Func,
+		&g.LocalFunc,
+		&g.LocalAtt,
 	)
 	g.Block.Reader = Seq(Zom(&g.Stat), Opt(&g.RetStat))
 	g.Chunk.Reader = &g.Block
