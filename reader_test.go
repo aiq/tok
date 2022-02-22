@@ -101,3 +101,15 @@ func TestNot(t *testing.T) {
 	str, err = NewScanner("XYZAa").CaptureUse(Many(notA))
 	check(str, "XYZ", err, false)
 }
+
+func TestInvalidReader(t *testing.T) {
+	var r Reader
+	r = Seq(To(Any(12)))
+	if !HasInvalidReader(r.What()) {
+		t.Errorf("expected %s in: %s", InvalidReaderMarker, r.What())
+	}
+	r = Seq(To(Any("s")))
+	if HasInvalidReader(r.What()) {
+		t.Errorf("unexpected %s in: %s", InvalidReaderMarker, r.What())
+	}
+}

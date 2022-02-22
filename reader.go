@@ -527,17 +527,37 @@ type invalidReader struct {
 }
 
 func (r invalidReader) Read(s *Scanner) error {
-	return fmt.Errorf("invalid reader: %v", r.err)
+	return fmt.Errorf("INVALID-READER: %v", r.err)
 }
 
 func (r invalidReader) What() string {
-	return fmt.Sprintf("(invalid reader: %v)", r.err)
+	return fmt.Sprintf("%s{%v}", InvalidReaderMarker, r.err)
 }
+
+// InvalidReaderMarker is the value that can be used to identify invalid reader
+// in a Reader, Rule or Grammar.
+const InvalidReaderMarker = "::INVALID-READER::"
 
 // InvalidReader is a Reader that allways fails.
 // The arguments will be passed to fmt.Errorf.
 func InvalidReader(format string, a ...interface{}) invalidReader {
 	return invalidReader{fmt.Errorf(format, a...)}
+}
+
+// HasInvalidReader returns true if str contains the :INVALID-READER: marker.
+func HasInvalidReader(str string) bool {
+	return strings.Contains(str, InvalidReaderMarker)
+}
+
+// AnyHasInvalidReader returns true if any of the strings in strs
+// contains the :INVALID-READER: marker.
+func AnyHasInvalidReader(strs []string) bool {
+	for _, str := range strs {
+		if HasInvalidReader(str) {
+			return true
+		}
+	}
+	return false
 }
 
 //------------------------------------------------------------------------------
