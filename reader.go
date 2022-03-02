@@ -211,6 +211,9 @@ func quoteRune(r rune) string {
 }
 
 func quoteBetween(min, max rune) string {
+	if min == max {
+		return strconv.QuoteRuneToGraphic(min)
+	}
 	return fmt.Sprintf("<%s%s>", quoteRune(min), quoteRune(max))
 }
 
@@ -245,16 +248,21 @@ func (r *betweenAnyReader) What() string {
 	b.WriteString("[<")
 	for i := 0; i < len(r.min); i++ {
 		b.WriteRune(' ')
-		b.WriteString(quoteRune(r.min[i]))
-		b.WriteString(quoteRune(r.max[i]))
+		min, max := r.min[i], r.max[i]
+		if min == max {
+			b.WriteString(strconv.QuoteRuneToGraphic(min))
+		} else {
+			b.WriteString(quoteRune(min))
+			b.WriteString(quoteRune(max))
+		}
 	}
 	b.WriteString(" >]")
 	return b.String()
 }
 
-// BetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that str descibes.
+// BetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that str describes.
 // A range can look like "a-z", multible ranges can look like "a-zA-Z0-9".
-// Invalid str values that can't be interpreted lead to an invalid reader.
+// An invalid str value that can't be interpreted lead to an invalid reader.
 func BetweenAny(str string) Reader {
 	runes := []rune(str)
 	if len(runes)%3 != 0 {
@@ -275,7 +283,24 @@ func BetweenAny(str string) Reader {
 	return r
 }
 
-// BetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that str descibes.
+// MakeBetweenAny creates a Reader that tries to Read a rune that is between any of the ranges and singles describe.
+// A range can look like "a-z", multible ranges can look like "a-zA-Z0-9".
+// A single value is a range that covers a single value.
+// An invalid ranges value that can't be interpreted lead to an invalid reader.
+func MakeBetweenAny(ranges string, singles string) Reader {
+	r := BetweenAny(ranges)
+	bar, ok := r.(*betweenAnyReader)
+	if !ok {
+		return r
+	}
+	for _, s := range singles {
+		bar.min = append(bar.min, s)
+		bar.max = append(bar.max, s)
+	}
+	return bar
+}
+
+// BuildBetweenAny creates a Reader that tries to Read a rune that is between any of the ranges that minMax descibe.
 // The number minMax arguments must be even, an invalid number of minMax values lead to an invalid reader.
 func BuildBetweenAny(minMax ...rune) Reader {
 	if len(minMax)%2 != 0 {
@@ -790,7 +815,7 @@ func (r *seqReader) What() string {
 	for _, sr := range r.readers {
 		sub = append(sub, sr.What())
 	}
-	return strings.Join(sub, "_")
+	return strings.Join(sub, " ")
 }
 
 // Seq creates a Reader that tries to Read with all readers in list sequential.
