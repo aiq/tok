@@ -228,8 +228,9 @@ func Between(min rune, max rune) Reader {
 
 //------------------------------------------------------------------------------
 type betweenAnyReader struct {
-	min []rune
-	max []rune
+	min     []rune
+	max     []rune
+	singles string
 }
 
 func (r *betweenAnyReader) Read(s *Scanner) error {
@@ -238,6 +239,9 @@ func (r *betweenAnyReader) Read(s *Scanner) error {
 		if s.IfBetween(r.min[i], r.max[i]) {
 			return nil
 		}
+	}
+	if s.IfAnyRune(r.singles) {
+		return nil
 	}
 	s.ToMarker(m)
 	return s.ErrorFor(r.What())
@@ -249,12 +253,12 @@ func (r *betweenAnyReader) What() string {
 	for i := 0; i < len(r.min); i++ {
 		b.WriteRune(' ')
 		min, max := r.min[i], r.max[i]
-		if min == max {
-			b.WriteString(strconv.QuoteRuneToGraphic(min))
-		} else {
-			b.WriteString(quoteRune(min))
-			b.WriteString(quoteRune(max))
-		}
+		b.WriteString(quoteRune(min))
+		b.WriteString(quoteRune(max))
+	}
+	if r.singles != "" {
+		b.WriteRune(' ')
+		b.WriteString(strconv.QuoteToGraphic(r.singles))
 	}
 	b.WriteString(" >]")
 	return b.String()
@@ -283,20 +287,17 @@ func BetweenAny(str string) Reader {
 	return r
 }
 
-// MakeBetweenAny creates a Reader that tries to Read a rune that is between any of the ranges and singles describe.
+// Set creates a Reader that tries to Read a rune that is between any of the ranges and singles describe.
 // A range can look like "a-z", multible ranges can look like "a-zA-Z0-9".
 // A single value is a range that covers a single value.
 // An invalid ranges value that can't be interpreted lead to an invalid reader.
-func MakeBetweenAny(ranges string, singles string) Reader {
+func Set(ranges string, singles string) Reader {
 	r := BetweenAny(ranges)
 	bar, ok := r.(*betweenAnyReader)
 	if !ok {
 		return r
 	}
-	for _, s := range singles {
-		bar.min = append(bar.min, s)
-		bar.max = append(bar.max, s)
-	}
+	bar.singles = singles
 	return bar
 }
 
