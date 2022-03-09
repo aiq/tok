@@ -69,6 +69,13 @@ func CollectRules(g interface{}) Rules {
 	return rules
 }
 
+// PickMany calls Pick on all readers with segment as paramter.
+func PickMany(segments *[]Segment, readers ...*RuleReader) {
+	for _, r := range readers {
+		r.Pick(segments)
+	}
+}
+
 //------------------------------------------------------------------------------
 // RuleReader can be used to set the rules of a grammar.
 type RuleReader struct {
@@ -81,8 +88,8 @@ func (r *RuleReader) Map(f MapFunc) {
 	r.Reader = Map(r.Reader, f)
 }
 
-// Pick collects the Tokens if a Reader was moven and sets the Info field.
-func (r *RuleReader) Pick(info string, segments *[]Segment) {
+// PickAs collects the Tokens if a Reader was moven and sets the Info field.
+func (r *RuleReader) PickAs(segments *[]Segment, info string) {
 	r.Map(func(t Token) {
 		*segments = append(*segments, Segment{
 			Info:  info,
@@ -91,7 +98,18 @@ func (r *RuleReader) Pick(info string, segments *[]Segment) {
 	})
 }
 
+// Pick collects the Tokens if a Reader was moven and sets the Info field with the Reader Name.
+func (r *RuleReader) Pick(segments *[]Segment) {
+	r.Map(func(t Token) {
+		*segments = append(*segments, Segment{
+			Info:  r.Name,
+			Token: t,
+		})
+	})
+}
+
 func (r *RuleReader) Read(s *Scanner) error {
+	fmt.Println("Read: ", r.Name, " @", s.pos)
 	return r.Reader.Read(s)
 }
 
