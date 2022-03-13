@@ -839,6 +839,61 @@ func Seq(list ...interface{}) Reader {
 }
 
 //------------------------------------------------------------------------------
+type skipSeqReader struct {
+	skip    Reader
+	readers []Reader
+}
+
+func (r *skipSeqReader) Read(s *Scanner) error {
+	m := s.Mark()
+	err := r.skip.Read(s)
+	for _, sub := range r.readers {
+		if err != nil {
+			break
+		}
+		err = sub.Read(s)
+		if err == nil {
+			err = r.skip.Read(s)
+		}
+	}
+	if err != nil {
+		s.ToMarker(m)
+	}
+	return err
+}
+
+func (r *skipSeqReader) What() string {
+	sub := []string{"(>" + r.skip.What() + ">"}
+	for _, sr := range r.readers {
+		sub = append(sub, sr.What())
+	}
+	sub = append(sub, ")")
+	return strings.Join(sub, " ")
+}
+
+// SkipSeq creates a Reader that tries to Read with all readers in list sequential
+// and skip add the beginning, between and the end everything that matches skip.
+// The type of the list values can be rune, string or Reader.
+func SkipSeq(skip Reader, list ...interface{}) Reader {
+	readers := []Reader{}
+	for i, ai := range list {
+		r, ok := asReader(ai)
+		if !ok {
+			return InvalidReader("invalid SkipSeq parameter at %d: unknown type %T", i+1, ai)
+		}
+		readers = append(readers, r)
+	}
+	return &skipSeqReader{skip, readers}
+}
+
+// SkipSeq creates a Reader that tries to Read with all readers in list sequential
+// and skip whitespaces add the beginning, between and the end.
+// The type of the list values can be rune, string or Reader.
+func SkipWSSeq(list ...interface{}) Reader {
+	return SkipSeq(Zom(WS()), list...)
+}
+
+//------------------------------------------------------------------------------
 type timesReader struct {
 	n   int
 	sub Reader
