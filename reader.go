@@ -879,8 +879,13 @@ func (r *toReader) What() string {
 	return "->" + r.sub.What()
 }
 
-// To creates a Reader that reads until r matches, without the matched part.
-func To(r Reader) Reader {
+// To creates a Reader that reads until i matches, without the matched part.
+// The type of i can be rune, string or Reader.
+func To(i interface{}) Reader {
+	r, ok := asReader(i)
+	if !ok {
+		return InvalidReader("invalid To parameter: unknown type %T", i)
+	}
 	return &toReader{r}
 }
 
