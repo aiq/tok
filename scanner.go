@@ -388,3 +388,16 @@ func (s *Scanner) ToStart() bool {
 func (s *Scanner) Mark() Marker {
 	return Marker(s.pos)
 }
+
+// TailPreview returns the n runes from the beginning of the Tail.
+func (s *Scanner) TailPreview(n int) string {
+	beg := s.pos
+	c := 0
+	for i := range s.Tail() {
+		if c == n {
+			return s.full[beg : beg+i]
+		}
+		c++
+	}
+	return s.full[beg:]
+}
