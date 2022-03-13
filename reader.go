@@ -99,11 +99,7 @@ func (r *anyReader) Read(s *Scanner) error {
 		}
 	}
 	s.ToMarker(m)
-	e := getDeepest(errs)
-	if e != nil {
-		return e
-	}
-	return s.ErrorFor(r.What())
+	return getDeepest(errs)
 }
 
 func (r *anyReader) What() string {
