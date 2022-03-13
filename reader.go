@@ -770,8 +770,13 @@ func (r *pastReader) What() string {
 	return "-->" + r.sub.What()
 }
 
-// Past creates a Reader that reads until r matches, with the matched part.
-func Past(r Reader) Reader {
+// Past creates a Reader that reads until i matches, with the matched part.
+// The type of i can be rune, string or Reader.
+func Past(i interface{}) Reader {
+	r, ok := asReader(i)
+	if !ok {
+		return InvalidReader("invalid Past parameter: unknown type %T", i)
+	}
 	return &pastReader{r}
 }
 
