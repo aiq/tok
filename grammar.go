@@ -47,13 +47,20 @@ func SetRuleNames(g interface{}) error {
 			continue
 		}
 		if e := CheckRuleName(name); e != nil {
-			return e
+			return fmt.Errorf("invalid name for %s: %v", field.Name, e)
 		}
 		rule := v.Field(i)
 		ruleName := rule.FieldByName("Name")
 		ruleName.Set(reflect.ValueOf(name))
 	}
 	return nil
+}
+
+func MustSetRuleNames(g interface{}) {
+	err := SetRuleNames(g)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // CollectRules collects the RuleReaders that the grammar g has.
@@ -67,6 +74,42 @@ func CollectRules(g interface{}) Rules {
 		}
 	}
 	return rules
+}
+
+// CheckRules checks if the RuleReaders have a Name and a Reader set.
+func CheckRules(g interface{}) error {
+	t := reflect.TypeOf(g).Elem()
+	v := reflect.ValueOf(g).Elem()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Type != reflect.TypeOf(RuleReader{}) {
+			continue
+		}
+		rule := v.Field(i)
+		name, ok := rule.FieldByName("Name").Interface().(string)
+		if !ok {
+			return fmt.Errorf("the Name of %s is not a string", field.Name)
+		}
+		if e := CheckRuleName(name); e != nil {
+			return e
+		}
+
+		reader := rule.FieldByName("Reader").Interface()
+		if reader == nil {
+			return fmt.Errorf("the Reader of %s is a nil value", field.Name)
+		}
+		if _, ok := reader.(Reader); !ok {
+			return fmt.Errorf("the Reader of %s is not a Reader", field.Name)
+		}
+	}
+	return nil
+}
+
+func MustCheckRules(g interface{}) {
+	err := CheckRules(g)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // PickMany calls Pick on all readers with segment as paramter.
