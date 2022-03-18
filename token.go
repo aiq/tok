@@ -94,7 +94,7 @@ func (s *Scanner) TokenizeUse(r Reader) (Token, error) {
 
 // Returns a sub string from the text that will be scanned.
 func (s *Scanner) Since(m Marker) string {
-	return s.Get(MakeToken(m, Marker(s.pos)))
+	return s.Get(MakeToken(m, s.Mark()))
 }
 
 // Capture returns the sub string that was scanned by f.
