@@ -6,8 +6,9 @@ import (
 )
 
 type Scanner struct {
-	full string
-	pos  int
+	full    string
+	pos     int
+	Tracker Tracker
 }
 
 // Creates a new Scanner to scan the str string.
@@ -323,6 +324,9 @@ func (s *Scanner) Move(n int) bool {
 		return false
 	}
 	s.pos = npos
+	if s.Tracker != nil {
+		s.Tracker.Update(s.Mark())
+	}
 	return true
 }
 
@@ -371,6 +375,9 @@ func (s *Scanner) ToMarker(m Marker) bool {
 		return false
 	}
 	s.pos = int(m)
+	if s.Tracker != nil {
+		s.Tracker.Update(s.Mark())
+	}
 	return true
 }
 

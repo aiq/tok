@@ -105,17 +105,11 @@ func CheckRules(g interface{}) error {
 	return nil
 }
 
+// MustCheckRules panics if an error occurs during CheckRules.
 func MustCheckRules(g interface{}) {
 	err := CheckRules(g)
 	if err != nil {
 		panic(err)
-	}
-}
-
-// PickMany calls Pick on all readers with segment as paramter.
-func PickMany(segments *[]Segment, readers ...*RuleReader) {
-	for _, r := range readers {
-		r.Pick(segments)
 	}
 }
 
@@ -131,28 +125,17 @@ func (r *RuleReader) Map(f MapFunc) {
 	r.Reader = Map(r.Reader, f)
 }
 
-// PickAs collects the Tokens if a Reader was moven and sets the Info field.
-func (r *RuleReader) PickAs(segments *[]Segment, info string) {
-	r.Map(func(t Token) {
-		*segments = append(*segments, Segment{
-			Info:  info,
-			Token: t,
-		})
-	})
+// PickAs collects the Segments if a Reader was moven and sets the Info field.
+func (r *RuleReader) PickAs(basket *Basket, info string) {
+	r.Reader = Pick(r.Reader, basket, info)
 }
 
-// Pick collects the Tokens if a Reader was moven and sets the Info field with the Reader Name.
-func (r *RuleReader) Pick(segments *[]Segment) {
-	r.Map(func(t Token) {
-		*segments = append(*segments, Segment{
-			Info:  r.Name,
-			Token: t,
-		})
-	})
+// Pick collects the Segments if a Reader was moven and sets the Info field with the Reader Name.
+func (r *RuleReader) Pick(basket *Basket) {
+	r.PickAs(basket, r.Name)
 }
 
 func (r *RuleReader) Read(s *Scanner) error {
-	fmt.Println("Read: ", r.Name, " @", s.pos)
 	return r.Reader.Read(s)
 }
 

@@ -31,8 +31,8 @@ func LuaString() Reader {
 		hexEscape,
 		utfEscape,
 	)
-	normalString := Seq('"', Any(Holey(' ', utf8.MaxRune, `"\`), escapeSequence), '"')
-	charString := Seq('\'', Any(Holey(' ', utf8.MaxRune, `'\`), escapeSequence), '\'')
+	normalString := Seq('"', Many(Any(Holey(' ', utf8.MaxRune, `"\`), escapeSequence)), '"')
+	charString := Seq('\'', Many(Any(Holey(' ', utf8.MaxRune, `'\`), escapeSequence)), '\'')
 	strHead, strTail := Janus("", Zom("="))
 	longString := Seq('[', strHead, '[', Between(' ', utf8.MaxRune), ']', strTail, ']')
 	return Any(normalString, charString, longString)
@@ -71,6 +71,7 @@ type LuaReader struct {
 	Exp       RuleReader `name:"exp"`
 	ExpList   RuleReader `name:"explist"`
 	NameList  RuleReader `name:"namelist"`
+	VarSuffix RuleReader `name:"varsuffix"`
 	Var       RuleReader `name:"var"`
 	VarList   RuleReader `name:"varlist"`
 
@@ -129,6 +130,9 @@ func Lua() *LuaReader {
 	g.FieldList.Reader = skipSeq(&g.Field, Zom(Seq(&g.FieldSep, &g.Field)), Opt(&g.FieldSep))
 	g.TableConstructor.Reader = skipSeq('{', Opt(&g.FieldList), '}')
 
+	nameAndArgs := skipSeq(Opt(Seq(':', &g.Name)), &g.FuncArgs)
+	varOrExp := Any(&g.Var, skipSeq('(', &g.Exp, ')'))
+
 	g.FuncParams.Reader = Any(skipSeq(&g.NameList, Opt(skipSeq(',', "..."))), "...")
 	g.FuncBody.Reader = SkipWSSeq('(', &g.FuncParams, ')', &g.Block, "end")
 	g.FuncDef.Reader = SkipWSSeq(Lit("function"), &g.FuncBody)
@@ -137,16 +141,9 @@ func Lua() *LuaReader {
 		&g.TableConstructor,
 		&g.LiteralString,
 	)
-	g.FuncCall.Reader = Any(
-		skipSeq(&g.PrefixExp, &g.FuncArgs),
-		skipSeq(&g.PrefixExp, ':', &g.Name, &g.FuncArgs),
-	)
+	g.FuncCall.Reader = Seq(varOrExp, Many(nameAndArgs))
 
-	g.PrefixExp.Reader = Any(
-		&g.FuncCall,
-		&g.Var,
-		skipSeq('(', &g.Exp, ')'),
-	)
+	g.PrefixExp.Reader = Seq(varOrExp, Zom(nameAndArgs))
 	g.FinalExp.Reader = Any(
 		"nil", "false", "true",
 		LuaNumeral(), &g.LiteralString, "...",
@@ -160,11 +157,14 @@ func Lua() *LuaReader {
 		&g.FinalExp,
 	)
 	g.ExpList.Reader = SkipWSSeq(&g.Exp, Zom(Seq(',', &g.Exp)))
-	g.Var.Reader = Any(
+	g.VarSuffix.Reader = skipSeq(Zom(nameAndArgs), Any(
+		skipSeq('[', &g.Exp, ']'),
+		Seq('.', &g.Name),
+	))
+	g.Var.Reader = Seq(Any(
 		&g.Name,
-		skipSeq(&g.PrefixExp, '[', &g.Exp, ']'),
-		skipSeq(&g.PrefixExp, '.', &g.Name),
-	)
+		skipSeq('(', &g.Exp, ')', &g.VarSuffix),
+	), Zom(&g.VarSuffix))
 	g.VarList.Reader = SkipWSSeq(&g.Var, Zom(SkipWSSeq(',', &g.Var)))
 
 	g.FuncName.Reader = SkipWSSeq(&g.Name, Zom(SkipWSSeq('.', &g.Name)), Opt(SkipWSSeq(':', &g.Name)))

@@ -20,20 +20,20 @@ func main() {
 		log.Fatalf("not able to read %q: %v", filename, err)
 	}
 
-	segs := []tok.Segment{}
 	sca := tok.NewScanner(string(inp))
 	reader := grammar.JSON()
-	reader.Key.PickAs(&segs, "key")
-	reader.Object.PickAs(&segs, "object")
-	reader.Array.PickAs(&segs, "array")
-	reader.String.PickAs(&segs, "string")
-	reader.Number.PickAs(&segs, "number")
-	reader.Bool.PickAs(&segs, "bool")
-	reader.Null.PickAs(&segs, "null")
+	basket := sca.NewBasket()
+	reader.Key.PickAs(basket, "key")
+	reader.Object.PickAs(basket, "object")
+	reader.Array.PickAs(basket, "array")
+	reader.String.PickAs(basket, "string")
+	reader.Number.PickAs(basket, "number")
+	reader.Bool.PickAs(basket, "bool")
+	reader.Null.PickAs(basket, "null")
 	err = sca.Use(reader)
 	if err != nil {
 		log.Fatalf("invalid log json file %q: %v", filename, err)
 	}
-	g := tok.BuildGraph(filename, segs)
+	g := tok.BuildGraph(filename, basket.Picked())
 	fmt.Print(g.FlameStack())
 }
