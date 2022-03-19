@@ -76,6 +76,21 @@ func CollectRules(g interface{}) Rules {
 	return rules
 }
 
+func CollectRuleReaders(g interface{}) []*RuleReader {
+	rules := []*RuleReader{}
+	v := reflect.ValueOf(g).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		i := field.Addr().Interface()
+		ptr, ok := i.(*RuleReader)
+		if !ok {
+			continue
+		}
+		rules = append(rules, ptr)
+	}
+	return rules
+}
+
 // CheckRules checks if the RuleReaders have a Name and a Reader set.
 func CheckRules(g interface{}) error {
 	t := reflect.TypeOf(g).Elem()
