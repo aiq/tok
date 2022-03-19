@@ -125,14 +125,13 @@ func (r *RuleReader) Map(f MapFunc) {
 	r.Reader = Map(r.Reader, f)
 }
 
-// PickAs collects the Segments if a Reader was moven and sets the Info field.
-func (r *RuleReader) PickAs(basket *Basket, info string) {
-	r.Reader = Pick(r.Reader, basket, info)
+func (r *RuleReader) Monitor(l *Log) {
+	r.Reader = Monitor(r.Reader, l, r.Name)
 }
 
 // Pick collects the Segments if a Reader was moven and sets the Info field with the Reader Name.
 func (r *RuleReader) Pick(basket *Basket) {
-	r.PickAs(basket, r.Name)
+	r.Reader = Pick(r.Reader, basket, r.Name)
 }
 
 func (r *RuleReader) Read(s *Scanner) error {
