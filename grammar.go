@@ -25,7 +25,7 @@ type Grammar interface {
 }
 
 // SetRuleNames sets the rule names via the associated Field-Tag.
-func SetRuleNames(g interface{}) error {
+func SetRuleNames(g Grammar) error {
 	t := reflect.TypeOf(g).Elem()
 	v := reflect.ValueOf(g).Elem()
 	for i := 0; i < t.NumField(); i++ {
@@ -47,14 +47,16 @@ func SetRuleNames(g interface{}) error {
 	return nil
 }
 
-func MustSetRuleNames(g interface{}) {
+// MustSetRuleNames panics if an error occurs during SetRuleNames.
+func MustSetRuleNames(g Grammar) {
 	err := SetRuleNames(g)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func CollectRules(g interface{}) []*Rule {
+// CollectRules collects the Rules in a Grammar.
+func CollectRules(g Grammar) []*Rule {
 	rules := []*Rule{}
 	v := reflect.ValueOf(g).Elem()
 	for i := 0; i < v.NumField(); i++ {
@@ -69,37 +71,21 @@ func CollectRules(g interface{}) []*Rule {
 	return rules
 }
 
-// CheckRules checks if the RuleReaders have a Name and a Reader set.
-func CheckRules(g interface{}) error {
-	t := reflect.TypeOf(g).Elem()
-	v := reflect.ValueOf(g).Elem()
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if field.Type != reflect.TypeOf(Rule{}) {
-			continue
-		}
-		rule := v.Field(i)
-		name, ok := rule.FieldByName("Name").Interface().(string)
-		if !ok {
-			return fmt.Errorf("the Name of %s is not a string", field.Name)
-		}
-		if e := CheckRuleName(name); e != nil {
+// CheckRules checks if the Rules in a Grammar have a Name and a Reader set.
+func CheckRules(g Grammar) error {
+	for _, r := range g.Grammar() {
+		if e := CheckRuleName(r.Name); e != nil {
 			return e
 		}
-
-		reader := rule.FieldByName("Reader").Interface()
-		if reader == nil {
-			return fmt.Errorf("the Reader of %s is a nil value", field.Name)
-		}
-		if _, ok := reader.(Reader); !ok {
-			return fmt.Errorf("the Reader of %s is not a Reader", field.Name)
+		if r.Reader == nil {
+			return fmt.Errorf("the Reader of %s is a nil value", r.Name)
 		}
 	}
 	return nil
 }
 
 // MustCheckRules panics if an error occurs during CheckRules.
-func MustCheckRules(g interface{}) {
+func MustCheckRules(g Grammar) {
 	err := CheckRules(g)
 	if err != nil {
 		panic(err)
