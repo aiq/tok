@@ -25,7 +25,7 @@ type Log struct {
 
 func MonitorGrammar(g Grammar) *Log {
 	l := &Log{}
-	rules := CollectRuleReaders(g)
+	rules := CollectRules(g)
 	l.Monitor(rules...)
 	return l
 }
@@ -47,7 +47,7 @@ func (l *Log) Exit(e *LogEntry, pos int, err error) {
 	l.level--
 }
 
-func (l *Log) Monitor(readers ...*RuleReader) {
+func (l *Log) Monitor(readers ...*Rule) {
 	for _, r := range readers {
 		r.Monitor(l)
 	}

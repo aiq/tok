@@ -8,30 +8,30 @@ import (
 )
 
 type JSONReader struct {
-	Value      RuleReader `name:"value"`
-	Object     RuleReader `name:"object"`
-	Members    RuleReader `name:"members"`
-	Member     RuleReader `name:"member"`
-	Key        RuleReader `name:"key"`
-	Array      RuleReader `name:"array"`
-	Elements   RuleReader `name:"elements"`
-	Element    RuleReader `name:"element"`
-	String     RuleReader `name:"string"`
-	Characters RuleReader `name:"characters"`
-	Character  RuleReader `name:"character"`
-	Escape     RuleReader `name:"escape"`
-	Hex        RuleReader `name:"hex"`
-	Number     RuleReader `name:"number"`
-	Integer    RuleReader `name:"integer"`
-	Fraction   RuleReader `name:"fraction"`
-	Exponent   RuleReader `name:"exponent"`
-	OneNine    RuleReader `name:"onenine"`
-	Digit      RuleReader `name:"digit"`
-	Digits     RuleReader `name:"digits"`
-	Sign       RuleReader `name:"sign"`
-	Bool       RuleReader `name:"bool"`
-	Null       RuleReader `name:"null"`
-	WS         RuleReader `name:"ws"`
+	Value      Rule `name:"value"`
+	Object     Rule `name:"object"`
+	Members    Rule `name:"members"`
+	Member     Rule `name:"member"`
+	Key        Rule `name:"key"`
+	Array      Rule `name:"array"`
+	Elements   Rule `name:"elements"`
+	Element    Rule `name:"element"`
+	String     Rule `name:"string"`
+	Characters Rule `name:"characters"`
+	Character  Rule `name:"character"`
+	Escape     Rule `name:"escape"`
+	Hex        Rule `name:"hex"`
+	Number     Rule `name:"number"`
+	Integer    Rule `name:"integer"`
+	Fraction   Rule `name:"fraction"`
+	Exponent   Rule `name:"exponent"`
+	OneNine    Rule `name:"onenine"`
+	Digit      Rule `name:"digit"`
+	Digits     Rule `name:"digits"`
+	Sign       Rule `name:"sign"`
+	Bool       Rule `name:"bool"`
+	Null       Rule `name:"null"`
+	WS         Rule `name:"ws"`
 }
 
 // JSON creates a Grammar to Read a JSON file.
@@ -78,6 +78,6 @@ func (r *JSONReader) What() string {
 	return "json"
 }
 
-func (r *JSONReader) Grammar() Rules {
+func (r *JSONReader) Grammar() []*Rule {
 	return CollectRules(r)
 }

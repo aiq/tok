@@ -8,20 +8,20 @@ import (
 )
 
 type MXTReader struct {
-	Chunks       RuleReader `name:"chunks"`
-	Chunk        RuleReader `name:"chunk"`
-	Header       RuleReader `name:"header"`
-	Marker       RuleReader `name:"marker"`
-	NextMarker   RuleReader `name:"next-marker"`
-	Name         RuleReader `name:"name"`
-	Comment      RuleReader `name:"comment"`
-	Arrow        RuleReader `name:"arrow"`
-	Salt         RuleReader `name:"salt"`
-	EmptyContent RuleReader `name:"empty-content"`
-	Content      RuleReader `name:"content"`
-	Word         RuleReader `name:"word"`
-	WordChar     RuleReader `name:"wordchar"`
-	NL           RuleReader `name:"nl"`
+	Chunks       Rule `name:"chunks"`
+	Chunk        Rule `name:"chunk"`
+	Header       Rule `name:"header"`
+	Marker       Rule `name:"marker"`
+	NextMarker   Rule `name:"next-marker"`
+	Name         Rule `name:"name"`
+	Comment      Rule `name:"comment"`
+	Arrow        Rule `name:"arrow"`
+	Salt         Rule `name:"salt"`
+	EmptyContent Rule `name:"empty-content"`
+	Content      Rule `name:"content"`
+	Word         Rule `name:"word"`
+	WordChar     Rule `name:"wordchar"`
+	NL           Rule `name:"nl"`
 }
 
 // MXT creates a Grammar to Read a MXT file.
@@ -60,6 +60,6 @@ func (r *MXTReader) What() string {
 	return "mxt"
 }
 
-func (r *MXTReader) Grammar() Rules {
+func (r *MXTReader) Grammar() []*Rule {
 	return CollectRules(r)
 }

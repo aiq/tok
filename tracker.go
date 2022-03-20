@@ -50,9 +50,9 @@ func (b *Basket) String() string {
 	return strings.Join(segs, ";")
 }
 
-// PickWith calls Pick on all readers with the Basket as paramter.
-func (b *Basket) PickWith(readers ...*RuleReader) {
-	for _, r := range readers {
+// PickWith calls Pick on all rules with the Basket as paramter.
+func (b *Basket) PickWith(rules ...*Rule) {
+	for _, r := range rules {
 		r.Pick(b)
 	}
 }

@@ -16,10 +16,10 @@ func unexpRuleName(name string, exp string) string {
 func TestSetRuleNames(t *testing.T) {
 	{
 		g := struct {
-			Rule1  RuleReader `name:"first"`
+			Rule1  Rule `name:"first"`
 			Ignore Reader
-			Rule2  RuleReader `name:"num2"`
-			Rule3  RuleReader
+			Rule2  Rule `name:"num2"`
+			Rule3  Rule
 		}{}
 		err := SetRuleNames(&g)
 		if err != nil {

@@ -50,56 +50,56 @@ func LuaComment() Reader {
 }
 
 type LuaReader struct {
-	SheBang       RuleReader `name:"SheBang"`
-	Name          RuleReader `name:"Name"`
-	Numeral       RuleReader `name:"Numeral"`
-	LiteralString RuleReader `name:"LiteralString"`
-	Comment       RuleReader `name:"Comment"`
+	SheBang       Rule `name:"SheBang"`
+	Name          Rule `name:"Name"`
+	Numeral       Rule `name:"Numeral"`
+	LiteralString Rule `name:"LiteralString"`
+	Comment       Rule `name:"Comment"`
 
-	UnOp  RuleReader `name:"unop"`
-	BinOp RuleReader `name:"binop"`
+	UnOp  Rule `name:"unop"`
+	BinOp Rule `name:"binop"`
 
-	FieldSep         RuleReader `name:"fieldsep"`
-	Field            RuleReader `name:"field"`
-	FieldList        RuleReader `name:"fieldlist"`
-	TableConstructor RuleReader `name:"tableconstructor"`
+	FieldSep         Rule `name:"fieldsep"`
+	Field            Rule `name:"field"`
+	FieldList        Rule `name:"fieldlist"`
+	TableConstructor Rule `name:"tableconstructor"`
 
-	FuncParams RuleReader `name:"funcparams"`
-	FuncBody   RuleReader `name:"funcbody"`
-	FuncDef    RuleReader `name:"funcdef"`
-	FuncArgs   RuleReader `name:"funcargs"`
-	FuncCall   RuleReader `name:"funccall"`
+	FuncParams Rule `name:"funcparams"`
+	FuncBody   Rule `name:"funcbody"`
+	FuncDef    Rule `name:"funcdef"`
+	FuncArgs   Rule `name:"funcargs"`
+	FuncCall   Rule `name:"funccall"`
 
-	PrefixExp RuleReader `name:"prefixexp"`
-	FinalExp  RuleReader `name:"finalexp"`
-	Exp       RuleReader `name:"exp"`
-	ExpList   RuleReader `name:"explist"`
-	NameList  RuleReader `name:"namelist"`
-	VarSuffix RuleReader `name:"varsuffix"`
-	Var       RuleReader `name:"var"`
-	VarList   RuleReader `name:"varlist"`
+	PrefixExp Rule `name:"prefixexp"`
+	FinalExp  Rule `name:"finalexp"`
+	Exp       Rule `name:"exp"`
+	ExpList   Rule `name:"explist"`
+	NameList  Rule `name:"namelist"`
+	VarSuffix Rule `name:"varsuffix"`
+	Var       Rule `name:"var"`
+	VarList   Rule `name:"varlist"`
 
-	FuncName    RuleReader `name:"funcname"`
-	Label       RuleReader `name:"label"`
-	RetStat     RuleReader `name:"retstat"`
-	Attrib      RuleReader `name:"attrib"`
-	AttNameList RuleReader `name:"attnamelist"`
-	Break       RuleReader `name:"break"`
-	GoTo        RuleReader `name:"goto"`
-	Do          RuleReader `name:"do"`
-	While       RuleReader `name:"while"`
-	Repeat      RuleReader `name:"repeat"`
-	IfElse      RuleReader `name:"ifelse"`
-	For         RuleReader `name:"for"`
-	ForEach     RuleReader `name:"foreach"`
-	Func        RuleReader `name:"func"`
-	LocalFunc   RuleReader `name:"localfunc"`
-	LocalAtt    RuleReader `name:"localatt"`
-	Stat        RuleReader `name:"stat"`
+	FuncName    Rule `name:"funcname"`
+	Label       Rule `name:"label"`
+	RetStat     Rule `name:"retstat"`
+	Attrib      Rule `name:"attrib"`
+	AttNameList Rule `name:"attnamelist"`
+	Break       Rule `name:"break"`
+	GoTo        Rule `name:"goto"`
+	Do          Rule `name:"do"`
+	While       Rule `name:"while"`
+	Repeat      Rule `name:"repeat"`
+	IfElse      Rule `name:"ifelse"`
+	For         Rule `name:"for"`
+	ForEach     Rule `name:"foreach"`
+	Func        Rule `name:"func"`
+	LocalFunc   Rule `name:"localfunc"`
+	LocalAtt    Rule `name:"localatt"`
+	Stat        Rule `name:"stat"`
 
-	Block  RuleReader `name:"block"`
-	Chunk  RuleReader `name:"chunk"`
-	Script RuleReader `name:"script"`
+	Block  Rule `name:"block"`
+	Chunk  Rule `name:"chunk"`
+	Script Rule `name:"script"`
 }
 
 // Lua creates a Grammar to Read a Lua file.
@@ -229,6 +229,6 @@ func (r *LuaReader) What() string {
 	return "lua"
 }
 
-func (r *LuaReader) Grammar() Rules {
+func (r *LuaReader) Grammar() []*Rule {
 	return CollectRules(r)
 }
