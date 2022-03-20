@@ -25,7 +25,6 @@ func TestLuaParts(t *testing.T) {
 		l.Reset()
 		sca := tok.NewScanner(c.inp)
 		err := sca.Use(c.r)
-		l.PrintWithPreview(c.inp, 10)
 		if err != nil {
 			t.Errorf("%d unexpected error: %v", i, err)
 			l.PrintWithPreview(c.inp, 10)
