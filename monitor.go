@@ -25,8 +25,7 @@ type Log struct {
 
 func MonitorGrammar(g Grammar) *Log {
 	l := &Log{}
-	rules := CollectRules(g)
-	l.Monitor(rules...)
+	l.Monitor(g.Grammar()...)
 	return l
 }
 
