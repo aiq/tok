@@ -46,3 +46,20 @@ func getPrefix(str string, n int) (string, bool) {
 	}
 	return str, false
 }
+
+func midSubString(str string, from int) string {
+	c := 0
+	for i := range str {
+		if c == from {
+			return str[i:]
+		}
+		c++
+	}
+	return ""
+}
+
+func subStringFrom(str string, from int, n int) string {
+	tail := midSubString(str, from)
+	res, _ := getPrefix(tail, n)
+	return res
+}
