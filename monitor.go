@@ -15,12 +15,19 @@ type LogEntry struct {
 }
 
 func (e LogEntry) String() string {
-	return fmt.Sprintf("%d%s@ %d %s %d", e.Level, strings.Repeat(".", e.Level), e.EnterAt, e.Info, e.ExitAt)
+	return fmt.Sprintf("%d%s@ %d %s", e.Level, strings.Repeat(".", e.Level), e.EnterAt, e.Info)
 }
 
 type Log struct {
 	Entries []LogEntry
 	level   int
+}
+
+func MonitorGrammar(g Grammar) *Log {
+	l := &Log{}
+	rules := CollectRuleReaders(g)
+	l.Monitor(rules...)
+	return l
 }
 
 func (l *Log) Enter(info string, pos int) *LogEntry {
@@ -54,7 +61,7 @@ func (l *Log) Print() {
 
 func (l *Log) PrintWithPreview(str string, n int) {
 	for _, e := range l.Entries {
-		fmt.Println(e, strconv.Quote(subStringFrom(str, e.EnterAt, n)))
+		fmt.Println(e, ">", strconv.Quote(subStringFrom(str, e.EnterAt, n)))
 	}
 }
 

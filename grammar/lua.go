@@ -31,17 +31,21 @@ func LuaString() Reader {
 		hexEscape,
 		utfEscape,
 	)
-	normalString := Seq('"', Many(Any(Holey(' ', utf8.MaxRune, `"\`), escapeSequence)), '"')
-	charString := Seq('\'', Many(Any(Holey(' ', utf8.MaxRune, `'\`), escapeSequence)), '\'')
+	normalString := Seq('"', Zom(Any(Holey(' ', utf8.MaxRune, `"\`), escapeSequence)), '"')
+	charString := Seq('\'', Zom(Any(Holey(' ', utf8.MaxRune, `'\`), escapeSequence)), '\'')
 	strHead, strTail := Janus("", Zom("="))
-	longString := Seq('[', strHead, '[', Between(' ', utf8.MaxRune), ']', strTail, ']')
+	longBeg := Seq('[', strHead, '[')
+	longEnd := Seq(']', strTail, ']')
+	longString := Seq(longBeg, Past(longEnd))
 	return Any(normalString, charString, longString)
 }
 
 func LuaComment() Reader {
 	line := Seq("--", To('\n'))
 	cmtHead, cmtTail := Janus("", Zom("="))
-	long := Seq("--[", cmtHead, '[', Between(' ', utf8.MaxRune), ']', cmtTail, ']')
+	longBeg := Seq("--[", cmtHead, '[')
+	longEnd := Seq(']', cmtTail, ']')
+	long := Seq(longBeg, Past(longEnd))
 	return Any(long, line)
 }
 
@@ -112,8 +116,8 @@ func Lua() *LuaReader {
 
 	g.UnOp.Reader = Any("-", "not", "#", "~")
 	g.BinOp.Reader = Any(
+		"..", "<=", "<", ">=", ">", "==", "~=", "and", "or",
 		"+", "-", "*", "/", "//", "^", "%", "&", "~", "|", ">>", "<<",
-		"..", "<", "<=", ">", ">=", "==", "~=", "and", "or",
 	)
 
 	skiper := Zom(Any(WS(), &g.Comment))
@@ -134,10 +138,10 @@ func Lua() *LuaReader {
 	varOrExp := Any(&g.Var, skipSeq('(', &g.Exp, ')'))
 
 	g.FuncParams.Reader = Any(skipSeq(&g.NameList, Opt(skipSeq(',', "..."))), "...")
-	g.FuncBody.Reader = SkipWSSeq('(', &g.FuncParams, ')', &g.Block, "end")
+	g.FuncBody.Reader = skipSeq('(', Opt(&g.FuncParams), ')', &g.Block, "end")
 	g.FuncDef.Reader = SkipWSSeq(Lit("function"), &g.FuncBody)
 	g.FuncArgs.Reader = Any(
-		skipSeq('(', &g.ExpList, ')'),
+		skipSeq('(', Opt(&g.ExpList), ')'),
 		&g.TableConstructor,
 		&g.LiteralString,
 	)
@@ -148,15 +152,15 @@ func Lua() *LuaReader {
 		"nil", "false", "true",
 		LuaNumeral(), &g.LiteralString, "...",
 		&g.FuncDef,
-		&g.PrefixExp,
+		skipSeq(&g.UnOp, &g.Exp),
 		&g.TableConstructor,
-		Seq(&g.UnOp, &g.Exp),
+		&g.PrefixExp,
 	)
 	g.Exp.Reader = Any(
 		SkipWSSeq(&g.FinalExp, &g.BinOp, &g.Exp),
 		&g.FinalExp,
 	)
-	g.ExpList.Reader = SkipWSSeq(&g.Exp, Zom(Seq(',', &g.Exp)))
+	g.ExpList.Reader = skipSeq(&g.Exp, Zom(skipSeq(',', &g.Exp)))
 	g.VarSuffix.Reader = skipSeq(Zom(nameAndArgs), Any(
 		skipSeq('[', &g.Exp, ']'),
 		Seq('.', &g.Name),
@@ -191,7 +195,6 @@ func Lua() *LuaReader {
 	g.Stat.Reader = Any(
 		';',
 		Seq(&g.VarList, '=', &g.ExpList),
-		&g.FuncCall,
 		&g.Label,
 		&g.Break,
 		&g.GoTo,
@@ -204,8 +207,9 @@ func Lua() *LuaReader {
 		&g.Func,
 		&g.LocalFunc,
 		&g.LocalAtt,
+		&g.FuncCall,
 	)
-	g.Block.Reader = SkipWSSeq(Zom(&g.Stat), Opt(&g.RetStat))
+	g.Block.Reader = skipSeq(Zom(&g.Stat), Opt(&g.RetStat))
 	g.Chunk.Reader = &g.Block
 	g.Script.Reader = Seq(Opt(&g.SheBang), &g.Block)
 
