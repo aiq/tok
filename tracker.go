@@ -16,6 +16,13 @@ func (s *Scanner) NewBasket() *Basket {
 	return b
 }
 
+func (s *Scanner) NewBasketFor(g Grammar) *Basket {
+	b := &Basket{}
+	b.PickWith(g.Grammar()...)
+	s.Tracker = b
+	return b
+}
+
 //------------------------------------------------------------------------------
 
 // Basket can be used to Pick readed Segments.

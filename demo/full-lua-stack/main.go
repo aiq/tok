@@ -22,16 +22,7 @@ func main() {
 
 	sca := tok.NewScanner(string(inp))
 	lua := grammar.Lua()
-	basket := sca.NewBasket()
-	basket.PickWith(
-		&lua.Name, &lua.Numeral, &lua.LiteralString, &lua.Comment,
-		&lua.UnOp, &lua.BinOp, &lua.Field, &lua.FieldList, &lua.TableConstructor,
-		&lua.FuncParams, &lua.FuncBody, &lua.FuncDef, &lua.FuncArgs, &lua.FuncCall,
-		&lua.PrefixExp, &lua.Exp, &lua.ExpList, &lua.NameList, &lua.Var, &lua.VarList,
-		&lua.FuncName, &lua.Label, &lua.RetStat, &lua.Attrib, &lua.AttNameList, &lua.Break,
-		&lua.GoTo, &lua.Do, &lua.While, &lua.Repeat, &lua.IfElse, &lua.For, &lua.ForEach,
-		&lua.Func, &lua.LocalFunc, &lua.LocalAtt, &lua.Stat, &lua.Block, &lua.Chunk,
-	)
+	basket := sca.NewBasketFor(lua)
 	err = sca.Use(lua)
 	if err != nil {
 		log.Fatalf("invalid lua file %q: %v", filename, err)
