@@ -4,18 +4,20 @@ import (
 	"strings"
 )
 
-// Tracker
+// Tracker is an interface that can be coupled with a Scannar and track the movemend.
 type Tracker interface {
 	Update(m Marker)
 }
 
-// Returns a new empty Basket that is set as Tracker on the scanner.
+// Returns a new empty Basket that is coupled as Tracker on the scanner.
 func (s *Scanner) NewBasket() *Basket {
 	b := &Basket{}
 	s.Tracker = b
 	return b
 }
 
+// Returns a new empty Basket that is coupled as Tracker on the scanner.
+// Each Rule that matches picks the Segment to the Basket.
 func (s *Scanner) NewBasketFor(g Grammar) *Basket {
 	b := &Basket{}
 	b.PickWith(g.Grammar()...)
@@ -30,6 +32,7 @@ type Basket struct {
 	segments []Segment
 }
 
+// Add adds a Segment to the Basket.
 func (b *Basket) Add(seg Segment) {
 	b.segments = append(b.segments, seg)
 }
@@ -45,6 +48,7 @@ func (b *Basket) Update(m Marker) {
 	b.segments = []Segment{}
 }
 
+// Picked returns the picked Segments.
 func (b *Basket) Picked() []Segment {
 	return b.segments
 }

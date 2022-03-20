@@ -29,7 +29,7 @@ The package has the following read functions:
 
 Readers can be used by the scanner to read from the scanner.
 tok has the following build-in Reader:
-Any, AnyRune, Between, BetweenAny, Bool, Digit, Fold, Holey, Int, Lit, Map, Match, Opt, Rune, Seq, Times, To, Uint, Wrap, WS, Zom
+Any, AnyFold, AnyRune, At, Between, BetweenAny, Body, Bool, Digit, Fold, Hex, Holey, Int, Janus, Lit, Many, Map, Match, Named, Not, Opt, Past, Rune, Seq, Set, SkipSeq, SkipWSSeq, Times, To, Uint, Wrap, WS, Zom
 
 
 == Mark Types
@@ -40,16 +40,13 @@ can be used to mark a scanner position
 Token::
 can be used to mark a range of the scanner
 
-Value::
-can be used tag a Token with addition information
-
 Segment::
-groups a value with the corresponding sub string
+can be used tag a Token with addition information
 
 == Grammar
 
-A grammar is a Reader that has RuleReader that are connected.
-Check the grammar for JSON in the gramar package.
+A grammar is a Reader that has connected Rules.
+Check the grammar package with different grammars, like JSOM, MXT and Lua.
 
 == Graph
 
@@ -60,3 +57,12 @@ With the FlameStack function is it possible to generate a string that can be use
 ----
 $ flamegraph.pl flame.stack > graph.svg 
 ----
+
+== Tracker
+
+A Tracker can be coupled with a Scannar and track the movemend.
+Basket is a Tracker und can be used to Pick-Up Elements that where read by the Parser.
+
+== Log
+
+A Log can be used to monitor and log the movemend in a Reader graph.
