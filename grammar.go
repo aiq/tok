@@ -92,7 +92,7 @@ func MustCheckRules(g Grammar) {
 	}
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // RuleReader can be used to set the rules of a grammar.
 type Rule struct {
 	Name   string
@@ -125,14 +125,14 @@ func (r *Rule) Rule() string {
 	return fmt.Sprintf("%s: %s", r.Name, r.Reader.What())
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type ruleNameReader struct {
 	sub Reader
 }
 
 func (r ruleNameReader) Read(s *Scanner) error {
 	err := r.sub.Read(s)
-	return s.BoolErrorFor(err == nil, r.What())
+	return s.ErrorIfFalse(err == nil, r.What())
 }
 
 func (r ruleNameReader) What() string {

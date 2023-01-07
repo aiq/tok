@@ -24,7 +24,7 @@ func (s *Scanner) ErrorFor(name string) error {
 }
 
 // Generates a ErrorFor if ok is false, otherwise returns the function nil.
-func (s *Scanner) BoolErrorFor(ok bool, name string) error {
+func (s *Scanner) ErrorIfFalse(ok bool, name string) error {
 	if !ok {
 		return ReadError{s.Mark(), name}
 	}

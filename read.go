@@ -12,7 +12,7 @@ func (s *Scanner) ReadRune() (rune, error) {
 	if r == utf8.RuneError {
 		return utf8.RuneError, s.ErrorFor("rune")
 	}
-	return r, s.BoolErrorFor(s.Move(i), "rune")
+	return r, s.ErrorIfFalse(s.Move(i), "rune")
 }
 
 // RevReadRune reads one rune value from the scanner the reverse way.
@@ -21,7 +21,7 @@ func (s *Scanner) RevReadRune() (rune, error) {
 	if r == utf8.RuneError {
 		return r, s.ErrorFor("rune")
 	}
-	return r, s.BoolErrorFor(s.Move(-i), "rune")
+	return r, s.ErrorIfFalse(s.Move(-i), "rune")
 }
 
 // ReadBool reads bool value from the scanner.
